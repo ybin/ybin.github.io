@@ -1,0 +1,738 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='//fonts.lug.ustc.edu.cn/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+
+
+  <meta name="keywords" content="重定位,链接," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iGNU's blog" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="共享库，在Linux称为shared object，即.so文件，在Windows中成为dynamic linked library，即.dll文件。使用共享库的主要目的就是“共享”，即内存中只有一份代码，而多个进程都可以使用它，当然使用时涉及到内存的分页机制，这里不作展开。共享库的一种很常用的实现方式就是位置无关代码(position independentcode)，该方式生成的共享库，其代码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="位置无关代码的动态链接过程">
+<meta property="og:url" content="http://ybin.gitcafe.io/compiler/position-independent-code-in-shared-library/index.html">
+<meta property="og:site_name" content="iGNU's blog">
+<meta property="og:description" content="共享库，在Linux称为shared object，即.so文件，在Windows中成为dynamic linked library，即.dll文件。使用共享库的主要目的就是“共享”，即内存中只有一份代码，而多个进程都可以使用它，当然使用时涉及到内存的分页机制，这里不作展开。共享库的一种很常用的实现方式就是位置无关代码(position independentcode)，该方式生成的共享库，其代码">
+<meta property="og:image" content="http://ybin.gitcafe.io/res/img/layout_of_shared_lib_in_memory.png">
+<meta property="og:updated_time" content="2015-07-29T03:26:02.860Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="位置无关代码的动态链接过程">
+<meta name="twitter:description" content="共享库，在Linux称为shared object，即.so文件，在Windows中成为dynamic linked library，即.dll文件。使用共享库的主要目的就是“共享”，即内存中只有一份代码，而多个进程都可以使用它，当然使用时涉及到内存的分页机制，这里不作展开。共享库的一种很常用的实现方式就是位置无关代码(position independentcode)，该方式生成的共享库，其代码">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> 位置无关代码的动态链接过程 | iGNU's blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">iGNU's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu menu-left">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <form class="site-search-form">
+    <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+  </form>
+
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'd-CBG2sZDFQ4dxyLmzSk','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                位置无关代码的动态链接过程
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2014-11-11T14:33:13+08:00" content="2014-11-11">
+              2014-11-11
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/编译器/" itemprop="url" rel="index">
+                    <span itemprop="name">编译器</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>共享库，在Linux称为<code>shared object</code>，即<code>.so</code>文件，在Windows中成为<br><code>dynamic linked library</code>，即<code>.dll</code>文件。使用共享库的主要目的就是“共享”，<br>即内存中只有一份代码，而多个进程都可以使用它，当然使用时涉及到内存的分页机制，<br>这里不作展开。共享库的一种很常用的实现方式就是<code>位置无关代码</code>(position independent<br>code)，该方式生成的共享库，其代码部分在动态载入并链接到内存中时是不会有任何修改的，<br>这些代码放到内存的任何位置都可以正常工作，所以叫做<code>与位置无关的代码</code>。</p>
+<a id="more"></a>
+<p>这里我们关注<code>位置无关代码</code>(PIC)是如何实现的。毕竟共享库映射到进程内存空间时，其<br>位置是不固定的，程序代码是如何知道共享库中函数的具体地址的，共享库中函数之间<br>相互调用时又是如何确定具体内存地址的，共享库中的全局变量(或者static)变量地址<br>又是如何确定的？</p>
+<p>这些问题其实很简单，魔力之源就是<code>全局偏移表</code>(Global Offset Table)，它被放置<br>在<code>.so</code>文件的<code>.GOT</code> section中。当调用函数或者引用数据(.so中的数据)时，不是<br>直接使用函数或者数据的绝对地址，而是使用GOT中相关索引中保存的地址。也就是说所有<br>函数、全局变量的绝对内存地址都放到GOT中，GOT其实就是个<code>unsigned int</code>数组。</p>
+<p><code>.so</code>文件载入内存之后的样子大致是这个样子的，</p>
+<p><img src="/res/img/layout_of_shared_lib_in_memory.png" alt="Layout of shared library in memory"></p>
+<p><a href="http://eli.thegreenplace.net/2011/11/03/position-independent-code-pic-in-shared-libraries/" target="_blank" rel="external">图片来源</a></p>
+<p>在链接阶段，code section的大小是可以知道的，而每条指令在code section中的偏移<br>也是已知的，所以从某一条指令到GOT的偏移量也就是可知的了，例如</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">; 1. &#21462;&#24471;GOT&#30340;&#30495;&#23454;&#22320;&#22336;&#65292;&#20063;&#23601;&#26159;&#24403;&#21069;&#25351;&#20196;&#30340;&#30495;&#23454;&#22320;&#22336;&#21152;&#19978;&#20559;&#31227;&#37327;&#10;lea ebx, ADDR_OF_GOT&#10;&#10;; 2. &#21462;&#24471;&#21464;&#37327;&#30340;&#30495;&#23454;&#22320;&#22336;&#65292;0x10&#20026;&#25968;&#25454;&#22312;GOT&#20013;&#32034;&#24341;&#65292;&#36825;&#22312;&#38142;&#25509;&#26102;&#21363;&#21487;&#30830;&#23450;&#10;mov edx, DWORD PTR [ebx + 0x10]&#10;&#10;; 3. &#21462;&#24471;&#21464;&#37327;&#30340;&#20540;&#10;mov edx, DWORD PTR [edx]</span><br></pre></td></tr></table></figure>
+<p><a href="http://eli.thegreenplace.net/2011/11/03/position-independent-code-pic-in-shared-libraries/" target="_blank" rel="external">代码参考</a></p>
+<p>上面是对变量的重定位，对于函数呢，函数之间的相对地址早在链接阶段就是已知的了，<br>所以<code>.so</code>内部的函数调用不需要重定位，至于外部调用<code>.so</code>内部函数，同样只需查阅<br>GOT即可。但是GOT中的真实地址又是怎么来的呢？答案是动态连接器，在Linux中就是<br><code>ld.xxx.so</code>，它在加载<code>.so</code>文件到内存时会知道<code>.so</code>代码在内存中的真实地址，然后<br>根据重定位表(<code>.dynamic</code>)即可知道每个函数、全局变量的偏移量及其在GOT中的索引，<br>进而就可以填充GOT表了。</p>
+<p>看似很完美，但是实际上函数的处理方式并非如此，函数采用一种叫做<code>延迟加载</code>的技术，<br>即在函数未被调用之前，其在GOT中的真实地址并没有得出，而是在第一次调用时，调用<br>动态加载器计算函数的真实地址，并将真实地址填入GOT的相关条目中，下次再调用该函数<br>时就直接使用GOT中记录的真实地址，而无需再次调用动态加载器了。</p>
+<p><code>延迟加载</code>技术其实也蛮简单，关键点就是<code>过程链接表</code>(procedure linkage table, PLT)，<br>编译阶段，编译器会为每个函数生成一个代码片段，叫做<code>stub</code>，不论什么函数，其对应<br>的stub都是16字节，而且这个stub的格式也都是一样的，这些stub构成过程链接表，</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PLT[0]:&#10;    call &#39;linker&#39;&#10;; ...&#10;PLT[n]:&#10;    jmp *GOT[m]&#10;    push &#39;index of func&#39;&#10;    jmp PLT[0]</span><br></pre></td></tr></table></figure>
+<p>而在GOT中，函数对应的条目默认值为该函数的stub中<code>push</code>指令的地址，所以第一次<br>调用某一个函数的流程大致是这样的：</p>
+<ol>
+<li>call ‘plt item’，这个是在链接时就被修改了的，PLT中的item其实也是一个小函数，<br>其相对地址在链接阶段就是已知的(链接器创建了这些小函数)</li>
+<li>jmp *GOT[m]，m是该函数在GOT中对应的索引，链接阶段已知，这句话就是跳转到<br>该函数在GOT中的对应项保存的地址处，而GOT默认保存的是该函数对应的PLT项的push指令<br>地址，所以这一句的意思其实就是<code>接着执行push指令</code></li>
+<li>push ‘index of func’，把该函数在动态链接表(.dynamic)中的索引入栈，它其实<br>就是调用linker的参数，看下一条</li>
+<li>jmp PLT[0]，PLT[0]不同于其他项，它保存的指令就是调用链接器，根据3中给出参数<br>计算函数的真实地址，然后修改函数对应的GOT项，(即GOT[m])</li>
+</ol>
+<p>以后再次调用该函数时，情况发生了戏剧性的变化：</p>
+<ol>
+<li>同第一次调用一样，仍然执行其对应的PLT项</li>
+<li>同第一次调用一样，仍然跳转到其对应的GOT项保存的地址处，但是由于第一次调用时<br>动态链接器已经修改了该GOT项(上面的步骤4)，所以这次直接跳转到该函数的真实地址处，<br>不再调用linker了</li>
+</ol>
+<p>于是，<code>延迟加载</code>过程就这样完成了。</p>
+<p>以上就是位置无关代码的实现方式，只是描述思想，不必计较细节。</p>
+<p>(over)</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/重定位/" rel="tag">#重定位</a>
+          
+            <a href="/tags/链接/" rel="tag">#链接</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/compiler/link-procedure/" rel="next" title="链接过程剖析">
+                <i class="fa fa-chevron-left"></i> 链接过程剖析
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/jvm/Introduction-to-JIT/" rel="prev" title="Introduction to JIT">
+                Introduction to JIT <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+        
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/res/avatars/ducky.jpg" alt="iGNU" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">iGNU</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ybin" target="_blank">
+                  <i class="fa fa-github fa-fw"></i> github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/ybsolar" target="_blank">
+                  <i class="fa fa-twitter fa-fw"></i> twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/ignu" target="_blank">
+                  <i class="fa fa-weibo fa-fw"></i> weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+      
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">iGNU</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    motionMiddleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+
+      isMobile() && FastClick.attach(document.body);
+
+      // Define Motion Sequence.
+      motionIntegrator
+        .add(motionMiddleWares.logo)
+        .add(motionMiddleWares.menu)
+        .add(motionMiddleWares.backToTop)
+        .add(motionMiddleWares.postList)
+        .add(motionMiddleWares.sidebar);
+
+      // Bootstrap Motion.
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

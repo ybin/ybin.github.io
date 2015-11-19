@@ -1,0 +1,745 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='//fonts.lug.ustc.edu.cn/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+
+
+  <meta name="keywords" content="xv6,操作系统," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iGNU's blog" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="xv6的系统引导过程。这部分主要介绍从系统上电到进入C语言的世界(main())的过程，内容包括引导扇区、内核img的加载、保护模式以及MMU的开启等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xv6代码阅读：系统引导">
+<meta property="og:url" content="http://ybin.gitcafe.io/os/xv6-boot/index.html">
+<meta property="og:site_name" content="iGNU's blog">
+<meta property="og:description" content="xv6的系统引导过程。这部分主要介绍从系统上电到进入C语言的世界(main())的过程，内容包括引导扇区、内核img的加载、保护模式以及MMU的开启等。">
+<meta property="og:updated_time" content="2015-07-29T03:26:02.860Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="xv6代码阅读：系统引导">
+<meta name="twitter:description" content="xv6的系统引导过程。这部分主要介绍从系统上电到进入C语言的世界(main())的过程，内容包括引导扇区、内核img的加载、保护模式以及MMU的开启等。">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> xv6代码阅读：系统引导 | iGNU's blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">iGNU's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu menu-left">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <form class="site-search-form">
+    <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+  </form>
+
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'd-CBG2sZDFQ4dxyLmzSk','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                xv6代码阅读：系统引导
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2014-12-24T14:27:03+08:00" content="2014-12-24">
+              2014-12-24
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/操作系统/" itemprop="url" rel="index">
+                    <span itemprop="name">操作系统</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>xv6的系统引导过程。这部分主要介绍从系统上电到进入C语言的世界(main())的过程，<br>内容包括引导扇区、内核img的加载、保护模式以及MMU的开启等。</p>
+<a id="more"></a>
+<h3 id="启动扇区">启动扇区</h3><p>系统上电之后，无论从硬盘启动还是从光驱启动，或者其他别的启动方式，BIOS都会把<br>启动扇区的512个字节复制到内存的0x7c00处，然后CPU从<code>%cs=0 %ip=0x7c00</code>处开始执行，<br>所以操作系统需要做的就是制作一个512字节大小的启动扇区，这里的代码做些必要的工作<br>之后就跳转到操作系统内核处开始执行，这样操作系统就开始运行起来了。</p>
+<p>启动扇区的工作主要有：</p>
+<ol>
+<li>enable A20</li>
+<li>set <code>protection mode bit</code> in <code>cr0</code></li>
+<li>进入32位模式(保护模式)并复制系统内核到内存</li>
+<li>跳转到内核代码继续执行</li>
+</ol>
+<p>对于xv6来说，前两个阶段在<code>bootmasm.S</code>中完成，后两个在<code>bootmain.c</code>中完成。</p>
+<h5 id="打开A20">打开A20</h5><p>什么是A20？详见维基百科<a href="http://en.wikipedia.org/wiki/A20_line" target="_blank" rel="external">页面</a>。<br>A20就是”Adress line 20”，以前的x86 CPU是16位的，但是Intel将其地址总线扩展<br>到20条，即A0~A19，这样内存寻址就能达到1MB(2^20)，由于其采用分段机制，即<br>段地址+段内偏移=实际内存地址，段内偏移用16位表示，而段寄存器也是16位的，<br>这样两者组合起来很容易就超过1MB，但是只有20条地址总线，于是超过1MB的部分<br>被自然而然的忽略掉了，即地址自动回旋，如<code>0x0010:0x0001</code>等于<code>0x0001</code>，<br>当时很多代码会依赖于此。</p>
+<p>但是到了保护模式，地址总线达到32位，以上的两个地址不再相等，于是在real mode<br>下，第21位地址总线(A20)是被禁用的，这样两者再次等同。</p>
+<p>如果要进入32位模式，必须要把A20打开，否则寻址能力达不到4GB。这就是原因所在。</p>
+<figure class="highlight"><figcaption><span>bootasm.S</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># Physical address line A20 is tied to zero so that the first PCs &#10;# with 2 MB would run software that assumed 1 MB.  Undo that.&#10;seta20.1:&#10;  inb     $0x64,%al               # Wait for not busy&#10;  testb   $0x2,%al&#10;  jnz     seta20.1&#10;&#10;  movb    $0xd1,%al               # 0xd1 -&#62; port 0x64&#10;  outb    %al,$0x64&#10;&#10;seta20.2:&#10;  inb     $0x64,%al               # Wait for not busy&#10;  testb   $0x2,%al&#10;  jnz     seta20.2&#10;&#10;  movb    $0xdf,%al               # 0xdf -&#62; port 0x60&#10;  outb    %al,$0x60</span><br></pre></td></tr></table></figure>
+<h5 id="启动保护模式">启动保护模式</h5><p>内存地址是段地址+段内偏移，在real mode下，段地址就放在段寄存器中，而到了保护模式下，<br>段寄存器中保存的不再是段地址，而是GDT(global descriptor table)中的偏移量，所以进入<br>保护模式时首先需要创建GDT。</p>
+<p>GDT，全局描述符表，它类似于一个数组，每个项占用8个字节，每个段对应于一个表项，表项中<br>保存着段的基址，段的大小，访问权限等信息，每次访问内存时，CPU根据内存地址定位到具体<br>的段，然后根据这些信息检查内存访问是否合法，如往一个只读段写入数据就会导致CPU抗议进而<br>罢工，这就是保护模式名称的由来。</p>
+<p>我们首先来创建GDT，它的第一个表项必须是空的，这是规定，作为一个临时的GDT，我们只为<br>code和data创建两个段即可，</p>
+<figure class="highlight"><figcaption><span>bootasm.S</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># Bootstrap GDT&#10;.p2align 2                                # force 4 byte alignment&#10;gdt:&#10;  SEG_NULLASM                             # null seg&#10;  SEG_ASM(STA_X|STA_R, 0x0, 0xffffffff)   # code seg&#10;  SEG_ASM(STA_W, 0x0, 0xffffffff)         # data seg&#10;&#10;gdtdesc:&#10;  .word   (gdtdesc - gdt - 1)             # sizeof(gdt) - 1&#10;  .long   gdt                             # address gdt</span><br></pre></td></tr></table></figure>
+<p>然后就可以启动保护模式了，启动方式也很简单，只需把<code>cr0</code>寄存器中的<code>PE</code>位置位即可，</p>
+<figure class="highlight"><figcaption><span>bootasm.S</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lgdt    gdtdesc&#10;movl    %cr0, %eax&#10;orl     $CR0_PE, %eax&#10;movl    %eax, %cr0</span><br></pre></td></tr></table></figure>
+<h5 id="进入32位模式">进入32位模式</h5><p>保护模式已经启动，接下来通过一个<code>ljmp</code>跳转，<code>ljmp  $(SEG_KCODE&lt;&lt;3), $start32</code>，<br><code>ljmp</code>的语法：<code>ljmp segment offset</code>，它会同时设置段寄存器和段内偏移(EIP寄存器)，<br>而在32位模式下，段寄存器保存的是GDT里的偏移量，所以这里段寄存器的值是<code>SEG_KCODE&lt;&lt;3</code>，<br>即数字8(SEG_KCODE等于1)，因为GDT的第一个表项必须为空，所以代码段占据第二个表项。</p>
+<p>进入32位模式之后，设置各个段寄存器，数据段占用GDT第三个表项，ES, SS等同于数据段，<br>其他不用的段置零。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">movw    $(SEG_KDATA&#60;&#60;3), %ax    # Our data segment selector&#10;movw    %ax, %ds                # -&#62; DS: Data Segment&#10;movw    %ax, %es                # -&#62; ES: Extra Segment&#10;movw    %ax, %ss                # -&#62; SS: Stack Segment&#10;movw    $0, %ax                 # Zero segments not ready for use&#10;movw    %ax, %fs                # -&#62; FS&#10;movw    %ax, %gs                # -&#62; GS</span><br></pre></td></tr></table></figure>
+<p>然后进入C语言的世界复制内核镜像，进入C的世界需要调用函数，必不可少的就是stack，<br>所以首先要设置stack，<code>movl $start, %esp</code>，即给esp寄存器设置，$start为bootasm.S<br>最开始的一个label，但是为何要将esp设置为$start呢，这是因为$start是代码的开始<br>位置，代码是向高内存地址处放置的，而stack是向低内存地址增长的，所以这样设置之后，<br>代码和栈向相反方向扩张，两者互不干涉。另外，当<code>call bootmain</code>的时候，首先要做的<br>就是<code>movl %esp %ebp</code>，即将esp的值设置给ebp，这样ebp保存的就是$start的值，也就是<br>函数栈中的第一个函数是<code>$start</code>，这符合逻辑。</p>
+<h5 id="复制内核镜像">复制内核镜像</h5><p>接下来进入C语言的世界，复制内核镜像，复制是通过IO port进行的，一个扇区一个扇区的<br>复制，这个我们不管，我们关注的是：内核镜像放在内存的什么位置。</p>
+<p>内核镜像是ELF格式的，elf文件中保存着代码的物理内存地址，它规定了该把内核放置到<br>哪里，于是我们读取扇区数据，并按照elf格式解析数据，并将其放置到它要求的物理内存<br>处即可，这个物理内存是在链接脚本(kernel.ld)中设置的，即1MB处。</p>
+<figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">/<span class="keyword">*</span> 内核入口点，保存在elf header的entry属性中 <span class="keyword">*</span>/</span><br><span class="line">ENTRY(_start)</span><br><span class="line"></span><br><span class="line">SECTIONS</span><br><span class="line">&#123;</span><br><span class="line">    /<span class="keyword">*</span> Link the kernel at this address: <span class="string">"."</span> means the current address <span class="keyword">*</span>/</span><br><span class="line">    /<span class="keyword">*</span> Must be equal to KERNLINK <span class="keyword">*</span>/</span><br><span class="line">    /<span class="keyword">*</span> kernel的虚拟内存地址 <span class="keyword">*</span>/</span><br><span class="line">	. = 0x80100000;</span><br><span class="line"></span><br><span class="line">    /<span class="keyword">*</span> kernel的物理内存地址，这个地址保存在elf-&gt;proghdr-&gt;paddr中，</span><br><span class="line">	   从磁盘读取kernel代码时会用到(bootmain.c::bootmain()::pa变量) <span class="keyword">*</span>/</span><br><span class="line">    /<span class="keyword">*</span> 1MB，这跟kernel的memlayout正好对应起来，见memlayout.h <span class="keyword">*</span>/</span><br><span class="line">	.text : AT(0x100000) &#123;</span><br><span class="line">		<span class="keyword">*</span>(.text .stub .text.<span class="keyword">*</span> .gnu.linkonce.t.<span class="keyword">*</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	/<span class="keyword">*</span> ........... <span class="keyword">*</span>/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>也就是说，内核代码中用的都是虚拟地址，如main函数的地址就是<code>0x801xxxxx</code>，<br><code>objdump -d kernel</code>看看就知道了，所有函数、变量都是虚拟地址，但是ENTRY保存的<br>却是物理地址，所以可以直接调用_start，而不用担心找不到它。</p>
+<figure class="highlight c"><figcaption><span>bootmain.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 调用_start，进入内核的世界，它位于entry.S文件中</span></span><br><span class="line">entry = (<span class="keyword">void</span>(*)(<span class="keyword">void</span>))(elf-&gt;entry);</span><br><span class="line">entry();</span><br></pre></td></tr></table></figure>
+<p>到此为止，内存中的布局大致是这个样子的，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line">读取kernel数据到内存0x10000处，读取之后内存的样子如下:</span><br><span class="line">0x10000(64KB)这个地方的内容只是暂时存放kernel img(elf文件)的hdr内容的，</span><br><span class="line">根据elf header的内容进一步读取kernel img的内容，实际的内容将会存在在</span><br><span class="line">1MB地址处，这个1MB地址是在kernel.ld中定义的(AT(0x100000))，这恰好跟</span><br><span class="line">kernel memlayout吻合起来，见memlayout.h。</span><br><span class="line"></span><br><span class="line">                   +-------------------+  4GB                 </span><br><span class="line">                   |                   |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">                   +-------------------+                      </span><br><span class="line">                   |                   |                      </span><br><span class="line"> (main.c)main() -&gt; |      kernel       |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">  0x100000(1MB) -&gt; +-------------------+                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">  0x10000(64KB) -&gt; +elf hdr of kern img+    (tmp use. elf header content)                    </span><br><span class="line">                   |                   |                      </span><br><span class="line">   0x7c00 + 512 -&gt; |      \x55\xAA     |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">       .gdtdesc -&gt; +-------------------+                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">           .gdt -&gt; +-----+-------------+ &lt;- gdtr(GDT Register)</span><br><span class="line">                   |     |  seg null   |                      </span><br><span class="line">                   | GDT |  seg code   |                      </span><br><span class="line">                   |     |  seg data   |                      </span><br><span class="line">                   +-----+-------------+                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">    bootmain()  -&gt; |                   |                      </span><br><span class="line">                   |        code       |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">      .start32  -&gt; |                   |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">(0x7c00).start  -&gt; +---------+---------+ &lt;- esp               </span><br><span class="line">                   |         |         |                      </span><br><span class="line">                   |         v         |                      </span><br><span class="line">                   |       stack       |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">                   |                   |                      </span><br><span class="line">                   +-------------------+  0GB                 </span><br><span class="line"></span><br><span class="line"> */</span></span><br></pre></td></tr></table></figure>
+<p><code>\x55\xAA</code>是什么？它是启动扇区的标志，所有启动扇区最后的两个字节必须是这两个字节。</p>
+<h5 id="启动扇区怎么制作呢？">启动扇区怎么制作呢？</h5><p>如果生成启动扇区，如何生成内核镜像，这些要到Makefile文件中去寻找答案。</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">xv6.img: bootblock kernel fs.img</span><br><span class="line">	dd if=/dev/zero of=xv6.img count=10000</span><br><span class="line">	dd if=bootblock of=xv6.img conv=notrunc # bootblock部分放置到第一个扇区(该部分必须保证自己的size小于512bytes)</span><br><span class="line">	dd if=kernel of=xv6.img seek=1 conv=notrunc # kernel代码放置到第二个以及以后的扇区</span><br><span class="line">bootblock: bootasm.S bootmain.c</span><br><span class="line">	<span class="variable">$(CC)</span> <span class="variable">$(CFLAGS)</span> -fno-pic -O -nostdinc -I. -c bootmain.c</span><br><span class="line">	<span class="variable">$(CC)</span> <span class="variable">$(CFLAGS)</span> -fno-pic -nostdinc -I. -c bootasm.S</span><br><span class="line">	<span class="variable">$(LD)</span> <span class="variable">$(LDFLAGS)</span> -N -e start -Ttext 0x7C00 -o bootblock.o bootasm.o bootmain.o</span><br><span class="line">	<span class="variable">$(OBJDUMP)</span> -S bootblock.o &gt; bootblock.asm</span><br><span class="line">	<span class="variable">$(OBJCOPY)</span> -S -O binary -j .text bootblock.o bootblock</span><br><span class="line">	./sign.pl bootblock # 检查bootblock的大小，并在最后两个字节处添加标志: 0x55 0xAA，这是启动扇区的标志。</span><br><span class="line">kernel: $(OBJS) entry.o entryother initcode kernel.ld</span><br><span class="line">	<span class="variable">$(LD)</span> <span class="variable">$(LDFLAGS)</span> -T kernel.ld -o kernel entry.o <span class="variable">$(OBJS)</span> -b binary initcode entryother</span><br></pre></td></tr></table></figure>
+<p>kernel就是内核镜像文件，而bootblock是启动扇区的内容。<br>系统引导部分至此结束，接下来从entry.S::_start开始分析内核代码。</p>
+<p>(over)</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/xv6/" rel="tag">#xv6</a>
+          
+            <a href="/tags/操作系统/" rel="tag">#操作系统</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/programming/x86-registers/" rel="next" title="x86 寄存器">
+                <i class="fa fa-chevron-left"></i> x86 寄存器
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/os/xv6-init-process/" rel="prev" title="xv6代码阅读：init进程的启动">
+                xv6代码阅读：init进程的启动 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+        
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/res/avatars/ducky.jpg" alt="iGNU" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">iGNU</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ybin" target="_blank">
+                  <i class="fa fa-github fa-fw"></i> github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/ybsolar" target="_blank">
+                  <i class="fa fa-twitter fa-fw"></i> twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/ignu" target="_blank">
+                  <i class="fa fa-weibo fa-fw"></i> weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#启动扇区"><span class="nav-number">1.</span> <span class="nav-text">启动扇区</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#打开A20"><span class="nav-number">1.0.1.</span> <span class="nav-text">打开A20</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#启动保护模式"><span class="nav-number">1.0.2.</span> <span class="nav-text">启动保护模式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进入32位模式"><span class="nav-number">1.0.3.</span> <span class="nav-text">进入32位模式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#复制内核镜像"><span class="nav-number">1.0.4.</span> <span class="nav-text">复制内核镜像</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#启动扇区怎么制作呢？"><span class="nav-number">1.0.5.</span> <span class="nav-text">启动扇区怎么制作呢？</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+      
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">iGNU</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    motionMiddleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+
+      isMobile() && FastClick.attach(document.body);
+
+      // Define Motion Sequence.
+      motionIntegrator
+        .add(motionMiddleWares.logo)
+        .add(motionMiddleWares.menu)
+        .add(motionMiddleWares.backToTop)
+        .add(motionMiddleWares.postList)
+        .add(motionMiddleWares.sidebar);
+
+      // Bootstrap Motion.
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

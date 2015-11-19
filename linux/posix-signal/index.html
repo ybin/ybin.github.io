@@ -1,0 +1,812 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='//fonts.lug.ustc.edu.cn/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+
+
+  <meta name="keywords" content="信号," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iGNU's blog" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="信号(signal)是*nix以及POSIX兼容系统中的一种进程间通讯的方法。signal大致可以做如下划分：
+
+Traditional Unix signal
+POSIX standard signal
+POSIX real time signal
+
+每一个信号对应一个整数值，每个信号都定义了默认行为，即进程收到信号之后默认执行的动作，这些以及signal编程所需的其他内容都定义在signal.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="信号(signals)">
+<meta property="og:url" content="http://ybin.gitcafe.io/linux/posix-signal/index.html">
+<meta property="og:site_name" content="iGNU's blog">
+<meta property="og:description" content="信号(signal)是*nix以及POSIX兼容系统中的一种进程间通讯的方法。signal大致可以做如下划分：
+
+Traditional Unix signal
+POSIX standard signal
+POSIX real time signal
+
+每一个信号对应一个整数值，每个信号都定义了默认行为，即进程收到信号之后默认执行的动作，这些以及signal编程所需的其他内容都定义在signal.">
+<meta property="og:image" content="http://ybin.gitcafe.io/res/img/signal_in_kernel.jpg">
+<meta property="og:updated_time" content="2015-07-29T03:26:02.860Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="信号(signals)">
+<meta name="twitter:description" content="信号(signal)是*nix以及POSIX兼容系统中的一种进程间通讯的方法。signal大致可以做如下划分：
+
+Traditional Unix signal
+POSIX standard signal
+POSIX real time signal
+
+每一个信号对应一个整数值，每个信号都定义了默认行为，即进程收到信号之后默认执行的动作，这些以及signal编程所需的其他内容都定义在signal.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> 信号(signals) | iGNU's blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">iGNU's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu menu-left">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <form class="site-search-form">
+    <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+  </form>
+
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'd-CBG2sZDFQ4dxyLmzSk','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                信号(signals)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2014-11-17T10:14:43+08:00" content="2014-11-17">
+              2014-11-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/linux-unix/" itemprop="url" rel="index">
+                    <span itemprop="name">linux/unix</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p><a href="">信号</a>(signal)是*nix以及POSIX兼容系统中的一种进程间通讯的方法。signal大致可以做如下划分：</p>
+<ul>
+<li>Traditional Unix signal</li>
+<li>POSIX standard signal</li>
+<li>POSIX real time signal</li>
+</ul>
+<p>每一个信号对应一个整数值，每个信号都定义了默认行为，即进程收到信号之后默认执行的动作，<br>这些以及signal编程所需的其他内容都定义在<code>signal.h</code>中，可以通过<code>kill -l</code>命令查看都有<br>哪些signal，其中<code>SIGRTMIN</code>到<code>SIGRTMAX</code>之间的signal用于实时信号(real time signal)。有<br>多种方式可以产生信号，当然进程也有多种方式来处理信号：</p>
+<ul>
+<li>使用默认行为</li>
+<li>忽略信号(ignore)</li>
+<li>捕获信号(catch)，即用户自定义signal handler</li>
+<li>阻塞信号(block)</li>
+</ul>
+<a id="more"></a>
+<h4 id="信号的产生">信号的产生</h4><p>产生信号的方式有多种，</p>
+<ul>
+<li>通过终端按键产生信号，如<code>Ctrl-C</code>产生<code>SIGINT</code>信号，<code>Ctrl-\</code>产生<code>SIGQUIT</code>信号</li>
+<li>通过系统调用向进程发送信号<ul>
+<li>int kill(pid_t pid, int signo); // 向其他进程发送信号</li>
+<li>int raise(int signo);           // 向当前进程发送信号(自己发给自己)</li>
+<li>void abort(void);               // 向当前进程发送<code>SIGABRT</code>信号</li>
+</ul>
+</li>
+<li>通过软件产生信号，如通过<code>alart</code>系统调用产生<code>SIGALRM</code>信号</li>
+</ul>
+<h4 id="传统的Unix信号">传统的Unix信号</h4><p>Unix信号使用方法比较简单，它只有一个接口，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="keyword">void</span> (*signal(<span class="keyword">int</span> sig, <span class="keyword">void</span> (*func)(<span class="keyword">int</span>)))(<span class="keyword">int</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 另一种比较容易理解的方式: </span></span><br><span class="line"><span class="comment">// signal接受一个整数信号和一个func类型的函数，然后返回一个func类型的函数</span></span><br><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">void</span> <span class="params">(*func)</span><span class="params">(<span class="keyword">int</span>)</span></span>;</span><br><span class="line"><span class="function">func <span class="title">signal</span><span class="params">(<span class="keyword">int</span> sig, func f)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 忽略信号sig</span></span><br><span class="line">signal(sig, SIG_IGN);</span><br><span class="line"><span class="comment">// 重置sig信号的默认行为</span></span><br><span class="line">signal(sig, SIG_DFL);</span><br></pre></td></tr></table></figure>
+<p>Unix信号接口可以忽略、捕获信号，但是无法阻塞信号。</p>
+<p>一个简单的实例：</p>
+<figure class="highlight c"><figcaption><span>Tradational Unix Signal</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;signal.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">signal_handler</span><span class="params">(<span class="keyword">int</span> signo)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">switch</span>(signo) &#123;</span><br><span class="line">        <span class="keyword">case</span> SIGINT:</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"You'v hit Ctrl+C.\n"</span>);</span><br><span class="line">            signal(SIGINT, SIG_DFL);</span><br><span class="line">        <span class="keyword">case</span> SIGQUIT:</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"You'v hit Ctrl+\.\n"</span>);</span><br><span class="line">            signal(SIGQUIT, SIG_DFL);</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"I don't know this signal.\n"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    signal(SIGTTOU, SIG_IGN);</span><br><span class="line">    signal(SIGTTIN, SIG_IGN);</span><br><span class="line">    signal(SIGINT, signal_handler);</span><br><span class="line">    signal(SIGQUIT, signal_handler);</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序将会忽略<code>SIGTTOU</code>和<code>SIGTTIN</code>信号，捕获<code>SIGINT</code>和<code>SIGQUIT</code>信号，并设置<br><code>signal_handler</code>函数为新的handler。在handler中，收到信号之后先打印出相关信息，<br>然后重置信号的默认行为。</p>
+<p>整个过程大致是这样的(以用户按下<code>Ctrl+\</code>为例)：</p>
+<ol>
+<li>在<code>main</code>函数中注册<code>SIGQUIT</code>信号的处理函数为<code>signal_handler</code></li>
+<li>程序执行过程中键盘中断到达，切换到内核态执行</li>
+<li>中断处理完毕后，在返回用户态之前检查发现有<code>SIGQUIT</code>信号(键盘驱动程序把Ctrl+\翻译为<code>SIGQUIT</code>信号)</li>
+<li>内核决定返回用户态执行<code>signal_handler</code>函数，它跟<code>main</code>函数使用不同的栈空间，这是两个独立的控制流程</li>
+<li><code>signal_handler</code>执行完毕自动执行特殊的系统调用<code>sigreturn</code>再次进入内核态</li>
+<li>内核再次检查信号，如果没有新的信号就恢复<code>main</code>函数的上下文继续执行</li>
+</ol>
+<p>然而，Unix信号过于简单，很多场景下它会显得捉襟见肘，如，</p>
+<ul>
+<li>在信号处理函数执行的过程中，新的信号到达该如何处理（特殊地，同样的信号再次到达）</li>
+</ul>
+<p>针对这些问题，POSIX提出来他们的解决方案。</p>
+<h4 id="POSIX信号">POSIX信号</h4><p>POSIX信号兼容Unix信号。首先需要明确以下概念：</p>
+<ul>
+<li>当信号出现时，我们用<strong>产生</strong>(generated)来表述</li>
+<li>我们可以为信号定义<strong>动作</strong></li>
+<li>当信号对应的动作<strong>执行</strong>时，我们说信号被<strong>送达</strong>(delevered)了</li>
+<li>从产生到送达，这期间信号处于<strong>悬停</strong>(pending)状态</li>
+<li>一个进程的信号可以<strong>阻塞</strong>，如果该进程没有忽略该信号，那么该信号将处于pending状态</li>
+<li>处于阻塞状态的信号可能多次产生，如果内核多次送达该信号，则称该信号被<strong>入队</strong>(queued)，如果只送达一次，则它没有被入队</li>
+<li>每个进程都有一个bit array称为signal mask，表示哪些信号被阻塞：一个bit代表一个信号的阻塞状态，如果该bit为on则表示阻塞</li>
+</ul>
+<h5 id="POSIX标准信号">POSIX标准信号</h5><p>在内核中信号大致是这样的，</p>
+<p><img src="/res/img/signal_in_kernel.jpg" alt="Signal in Kernel"></p>
+<p>为此，POSIX定义了一套接口用来处理信号，</p>
+<h6 id="signal_set_operations">signal set operations</h6><p>signal set数据结构<code>sigset_t</code>用来表示一个信号集合，它用一个bit来表示一个信号<br>的on或者off，对应的有一套操作函数，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigemptyset</span><span class="params">(sigset_t *<span class="built_in">set</span>)</span></span>;                     <span class="comment">// clear set, set all bit off</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigfillset</span><span class="params">(sigset_t *<span class="built_in">set</span>)</span></span>;                      <span class="comment">// fill set, set all bit on</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigaddset</span><span class="params">(sigset_t *<span class="built_in">set</span>, <span class="keyword">int</span> signo)</span></span>;            <span class="comment">// add signo into set</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigdelset</span><span class="params">(sigset_t *<span class="built_in">set</span>, <span class="keyword">int</span> signo)</span></span>;            <span class="comment">// delete signo from set</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigismember</span><span class="params">(<span class="keyword">const</span> sigset_t *<span class="built_in">set</span>, <span class="keyword">int</span> signo)</span></span>;    <span class="comment">// does signo be member of set</span></span><br></pre></td></tr></table></figure>
+<h6 id="sigprocmask函数">sigprocmask函数</h6><p>该函数可以读取或者改变进程的block mask，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigprocmask</span><span class="params">(<span class="keyword">int</span> how, <span class="keyword">const</span> sigset_t *<span class="built_in">set</span>, sigset_t *oldset)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>参数<code>how</code>可以是</p>
+<ul>
+<li><code>SIG_BLOCK</code>：效果相当于<code>mask |= set</code></li>
+<li><code>SIG_UNBLOCK</code>：效果相当于<code>mask &amp;= ~set</code></li>
+<li><code>SIG_SETMASK</code>：效果相当于<code>mask = set</code></li>
+</ul>
+<p>如果<code>oldset</code>不为<code>NULL</code>则会保存之前的mask值，它可以用于恢复以前的状态。</p>
+<h6 id="sigpending函数">sigpending函数</h6><p>该函数用于读取当前pending状态的信号，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigpending</span><span class="params">(sigset_t *<span class="built_in">set</span>)</span></span>;  <span class="comment">// 处于pending状态的信号保存在set中</span></span><br></pre></td></tr></table></figure>
+<h6 id="sigaction函数">sigaction函数</h6><p>该函数可以读取和修改与指定信号相关联的处理动作，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigaction</span><span class="params">(<span class="keyword">int</span> signo, <span class="keyword">const</span> <span class="keyword">struct</span> sigaction *act, <span class="keyword">struct</span> sigaction *oldact)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> sigaction &#123;</span><br><span class="line">    <span class="keyword">void</span> (*sa_handler)(<span class="keyword">int</span>);    <span class="comment">// signal handler or SIG_DFL or SIG_IGN</span></span><br><span class="line">    <span class="keyword">sigset_t</span> sa_mask;           <span class="comment">// handler执行期间block mask设置为sa_mask，执行完之后自动恢复</span></span><br><span class="line">    <span class="keyword">int</span> sa_flags;               <span class="comment">// TODO 待补充。。。</span></span><br><span class="line">    <span class="keyword">void</span> (*sa_sigaction)(<span class="keyword">int</span>, <span class="keyword">siginfo_t</span> *, <span class="keyword">void</span> *);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="sigsuspend函数">sigsuspend函数</h6><p>该函数重置进程block mask并挂起当前进程，注意，这两步是<strong>原子操作</strong>，这很重要。<br>函数返回后，block mask恢复为原来的值。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sigsuspend</span><span class="params">(<span class="keyword">const</span> sigset_t *mask)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>写一个闹钟程序，每隔一段时间闹钟响一次，在闹钟响的间歇，进程挂起。</p>
+<figure class="highlight c"><figcaption><span>闹钟程序 v1</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span> // for pause()</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">alarm_handler</span><span class="params">(<span class="keyword">int</span> signo)</span> </span>&#123; <span class="comment">/* nothing to do */</span> &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">mysleep</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> t)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">struct</span> sigaction newact, oldact;</span><br><span class="line">    </span><br><span class="line">    newact.sa_handler = alarm_handler;</span><br><span class="line">    sigemptyset(&amp;newact.sa_mask);           <span class="comment">// unblock all signals</span></span><br><span class="line">    newact.sa_flags = <span class="number">0</span>;</span><br><span class="line">    sigaction(SIGALRM, &amp;newact, &amp;oldact);   <span class="comment">// set user defined handler</span></span><br><span class="line">    </span><br><span class="line">    alarm(t);   <span class="comment">// t seconds之后内核将会给进程发送SIGALARM信号</span></span><br><span class="line">    pause();    <span class="comment">// 设置好闹钟之后，进程挂起</span></span><br><span class="line">    </span><br><span class="line">    alarm(<span class="number">0</span>);   <span class="comment">// 取消闹钟</span></span><br><span class="line">    sigaction(SIGALRM, &amp;oldact, <span class="literal">NULL</span>);      <span class="comment">// reset SIGALARM handler</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">        mysleep(<span class="number">1</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"ONE second passed\n"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>仔细分析<code>mysleep</code>函数，该函数有个致命之处，如果在<code>alarm</code>函数和<code>pause</code>函数之间程序<br>暂停超过1s(可能被调度了)，那么就会导致调用<code>pause</code>之前，<code>SIGALAM</code>信号到达，然后执行<br>handler，之后才执行<code>pause</code>函数，如果在此之后没有其他信号送达，那么该进程就会永远<br>被挂起。为避免这种情况，我们必须要保证<code>SIGALRM</code>信号在<code>pause</code>之后到达，一个“解决”方法<br>是使用信号阻塞。其他不变，</p>
+<figure class="highlight c"><figcaption><span>闹钟程序，使用signal block</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 1. 屏蔽SIGALRM信号</span></span><br><span class="line"><span class="comment">// 2. 调用alarm</span></span><br><span class="line">alarm(t);</span><br><span class="line"><span class="comment">// 3. 接触信号屏蔽</span></span><br><span class="line"><span class="comment">// 4. 挂起</span></span><br><span class="line">pause();</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
+<p>但是，信号在3, 4之间到达呢，仍然无法解决问题，如果能保证3, 4是原子操作，问题就解决了，<br>这正是<code>sigsuspend</code>函数的作用，</p>
+<figure class="highlight c"><figcaption><span>闹钟程序，使用sigsuspend函数</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">mysleep</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">int</span> t)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">struct</span> sigaction newact, oldact;</span><br><span class="line">    <span class="keyword">sigset_t</span> newmask, oldmask, suspendmask;</span><br><span class="line">    </span><br><span class="line">    newact.sa_handler = alarm_handler;</span><br><span class="line">    sigemptyset(&amp;newact.sa_mask);           <span class="comment">// unblock all signals</span></span><br><span class="line">    newact.sa_flags = <span class="number">0</span>;</span><br><span class="line">    sigaction(SIGALRM, &amp;newact, &amp;oldact);   <span class="comment">// set user defined handler</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// block SIGALRM</span></span><br><span class="line">    sigemptyset(&amp;newmask);</span><br><span class="line">    sigaddset(&amp;newmask, SIGALARM);</span><br><span class="line">    sigprocmask(SIG_BLOCK, &amp;newmask, &amp;oldmask);</span><br><span class="line">    </span><br><span class="line">    alarm(t);</span><br><span class="line">    </span><br><span class="line">    suspendmask = oldmask;</span><br><span class="line">    sigdelset(&amp;suspendmask, SIGALARM);      <span class="comment">// unblock SIGALARM</span></span><br><span class="line">    sigsuspend(&amp;suspendmask);               <span class="comment">// set block mast as suspendmask, and suspend</span></span><br><span class="line">    </span><br><span class="line">    alarm(<span class="number">0</span>);</span><br><span class="line">    sigaction(SIGALRM, &amp;oldact, <span class="literal">NULL</span>);</span><br><span class="line">    sigprocmask(SIG_SETMASK, &amp;oldmask, <span class="literal">NULL</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="POSIX实时信号">POSIX实时信号</h5><p>待续。。。</p>
+<hr>
+<h4 id="参考文档">参考文档</h4><ol>
+<li><a href="http://www.linuxprogrammingblog.com/all-about-linux-signals?page=show" target="_blank" rel="external">All about Linux signals</a></li>
+<li><a href="https://aboutc.googlecode.com/files/LinuxC.pdf" target="_blank" rel="external">Linux C编程一站式学习(pdf)</a></li>
+</ol>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/信号/" rel="tag">#信号</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/jvm/how-stop-and-resume-the-world-in-JamVM/" rel="next" title="JamVM如何实现Stop-The-World">
+                <i class="fa fa-chevron-left"></i> JamVM如何实现Stop-The-World
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/jvm/install-jamvm/" rel="prev" title="安装JamVM">
+                安装JamVM <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+        
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/res/avatars/ducky.jpg" alt="iGNU" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">iGNU</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ybin" target="_blank">
+                  <i class="fa fa-github fa-fw"></i> github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/ybsolar" target="_blank">
+                  <i class="fa fa-twitter fa-fw"></i> twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/ignu" target="_blank">
+                  <i class="fa fa-weibo fa-fw"></i> weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#信号的产生"><span class="nav-number">1.</span> <span class="nav-text">信号的产生</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#传统的Unix信号"><span class="nav-number">2.</span> <span class="nav-text">传统的Unix信号</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#POSIX信号"><span class="nav-number">3.</span> <span class="nav-text">POSIX信号</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#POSIX标准信号"><span class="nav-number">3.1.</span> <span class="nav-text">POSIX标准信号</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#signal_set_operations"><span class="nav-number">3.1.1.</span> <span class="nav-text">signal set operations</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#sigprocmask函数"><span class="nav-number">3.1.2.</span> <span class="nav-text">sigprocmask函数</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#sigpending函数"><span class="nav-number">3.1.3.</span> <span class="nav-text">sigpending函数</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#sigaction函数"><span class="nav-number">3.1.4.</span> <span class="nav-text">sigaction函数</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#sigsuspend函数"><span class="nav-number">3.1.5.</span> <span class="nav-text">sigsuspend函数</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#POSIX实时信号"><span class="nav-number">3.2.</span> <span class="nav-text">POSIX实时信号</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参考文档"><span class="nav-number">4.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+      
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">iGNU</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    motionMiddleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+
+      isMobile() && FastClick.attach(document.body);
+
+      // Define Motion Sequence.
+      motionIntegrator
+        .add(motionMiddleWares.logo)
+        .add(motionMiddleWares.menu)
+        .add(motionMiddleWares.backToTop)
+        .add(motionMiddleWares.postList)
+        .add(motionMiddleWares.sidebar);
+
+      // Bootstrap Motion.
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

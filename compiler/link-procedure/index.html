@@ -1,0 +1,768 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='//fonts.lug.ustc.edu.cn/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+
+
+  <meta name="keywords" content="重定位,链接," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iGNU's blog" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="我们将用下面的代码作为实例进行分析。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="链接过程剖析">
+<meta property="og:url" content="http://ybin.gitcafe.io/compiler/link-procedure/index.html">
+<meta property="og:site_name" content="iGNU's blog">
+<meta property="og:description" content="我们将用下面的代码作为实例进行分析。">
+<meta property="og:image" content="http://ybin.gitcafe.io/res/img/main.o.jpg">
+<meta property="og:image" content="http://ybin.gitcafe.io/res/img/util.o.jpg">
+<meta property="og:image" content="http://ybin.gitcafe.io/res/img/merged_text_section.jpg">
+<meta property="og:image" content="http://ybin.gitcafe.io/res/img/merged_symtab_section.jpg">
+<meta property="og:image" content="http://ybin.gitcafe.io/res/img/merged_ref_text_section.jpg">
+<meta property="og:updated_time" content="2015-07-29T03:26:02.860Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="链接过程剖析">
+<meta name="twitter:description" content="我们将用下面的代码作为实例进行分析。">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> 链接过程剖析 | iGNU's blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">iGNU's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu menu-left">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <form class="site-search-form">
+    <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+  </form>
+
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'd-CBG2sZDFQ4dxyLmzSk','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                链接过程剖析
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2014-11-05T10:47:06+08:00" content="2014-11-05">
+              2014-11-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/编译器/" itemprop="url" rel="index">
+                    <span itemprop="name">编译器</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>我们将用下面的代码作为实例进行分析。</p>
+<a id="more"></a>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// main.c</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span> *a, <span class="keyword">int</span> *b)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a, b;</span><br><span class="line">    a = <span class="number">42</span>;</span><br><span class="line">    b = <span class="number">24</span>;</span><br><span class="line">    swap(&amp;a, &amp;b);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// util.c</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"hello, world."</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span> *a, <span class="keyword">int</span> *b)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> tmp;</span><br><span class="line">    tmp = *a;</span><br><span class="line">    *a = *b;</span><br><span class="line">    *b = tmp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gcc -c main.c util.c</span><br><span class="line">gcc main.c util.c</span><br></pre></td></tr></table></figure>
+<p>这样我们得到三个文件： <code>main.o</code>, <code>util.o</code>, <code>a.out</code>，<br><code>.o</code>文件为可重定位文件(linkable file)，<code>a.out</code>为最终的可执行文件(executable file)</p>
+<h2 id="我们的上游产品长什么样">我们的上游产品长什么样</h2><p>到现在为止，在linker的角度看，有两个可供我们使用的材料：<code>main.o</code>和<code>util.o</code>，<br>linker将把这两个文件链接成一个可执行文件(<code>a.out</code>)。</p>
+<p>我们称<code>.o</code>文件为<code>模块</code>，让我们来看看这两个模块长什么样子。</p>
+<p><img src="/res/img/main.o.jpg" alt="Layout of main.o"></p>
+<p><img src="/res/img/util.o.jpg" alt="Layout of util.o"></p>
+<p>补充两个相关的数据结构定义：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> &#123;</span><br><span class="line">    <span class="keyword">int</span> name;       <span class="comment">// index in String table</span></span><br><span class="line">    <span class="keyword">int</span> value;      <span class="comment">// offset in section or VM address</span></span><br><span class="line">    <span class="keyword">int</span> size;</span><br><span class="line">    <span class="keyword">char</span> type:<span class="number">4</span>;    <span class="comment">// data, func, section, src file etc.</span></span><br><span class="line">         binding:<span class="number">4</span>; <span class="comment">// local or global</span></span><br><span class="line">    <span class="keyword">char</span> reserved;</span><br><span class="line">    <span class="keyword">char</span> section;   <span class="comment">// section number, e.g. 1(.text), 3(.data)</span></span><br><span class="line">&#125; Elf_Symbol;</span><br></pre></td></tr></table></figure>
+<p>说明：</p>
+<p><code>value</code>字段，如果重定位(见下)类型为相对地址引用，则value保存的是相对于其所在<br>section的偏移量，如果是绝对地址引用，它保存的是运行时虚拟内存地址。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> &#123;</span><br><span class="line">    <span class="keyword">int</span> offset;    <span class="comment">// 需要重定位的符号在section中的偏移，即重定位它</span></span><br><span class="line">    <span class="keyword">int</span> symbol:<span class="number">24</span>; <span class="comment">// 符号名字在字符串表中的索引，即重定位到它</span></span><br><span class="line">        type:<span class="number">8</span>;    <span class="comment">// 重定位类型，即如何重定位</span></span><br><span class="line">&#125; Elf32_Rel;</span><br></pre></td></tr></table></figure>
+<p>符号表表示“当前模块可对外提供哪些符号”，而重定位表表示“当前模块需要哪些符号”。</p>
+<h2 id="静态重定位">静态重定位</h2><p>静态重定位有两部分组成：</p>
+<ol>
+<li>重定位section并修改符号表和重定位表</li>
+<li>重定位section中对symbol的引用</li>
+</ol>
+<h3 id="重定位section">重定位section</h3><p>linker把所有<code>.o</code>的<code>.text</code>合并为一个新的<code>.text</code>，把所有<code>.symtab</code>合并为一个<br><code>.symtab</code>，把所有的<code>.ref.text</code>合并为一个<code>.ref.text</code>。然后为每个合并后的<br>section确定运行时地址，是的，运行时地址在链接阶段就一定确定了，<code>0x8048000</code><br>和<code>0x400000</code>这样的虚拟地址就是在这个时候确定的。</p>
+<h5 id="合并-text_section并设置运行时地址值，">合并<code>.text</code> section并设置运行时地址值，</h5><p><img src="/res/img/merged_text_section.jpg" alt="merged .text section"></p>
+<p>注意：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sizeof</span>(.text of main.o) == <span class="number">0x400524</span> - <span class="number">0x4004f4</span> = <span class="number">0x30</span>;</span><br></pre></td></tr></table></figure>
+<p>这个值在修改符号表和重定位表的时候会用到。</p>
+<h5 id="合并-symtab_section并修改symbol的offset值，">合并<code>.symtab</code> section并修改symbol的offset值，</h5><p><img src="/res/img/merged_symtab_section.jpg" alt="merged .symtab section"></p>
+<p>注意，<code>0x30</code>即为上面计算得出的<code>0x30</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">value of print = <span class="number">0x30</span> = <span class="number">0x00</span> + <span class="number">0x30</span> = old value + <span class="number">0x30</span>;</span><br></pre></td></tr></table></figure>
+<h5 id="合并-rel-text_section并修改offset值，">合并<code>.rel.text</code> section并修改offset值，</h5><p><img src="/res/img/merged_ref_text_section.jpg" alt="merged .rel.text section"></p>
+<p>注意： 因为main.o中的<code>.text</code> section在新的<code>.text</code> section中为第一个，<br>所以以前的偏移量仍然有效，故新、旧值相等。</p>
+<h3 id="重定位section中对symbol的引用">重定位section中对symbol的引用</h3><p><code>.symtab</code>和<code>.rel.text</code>在合并时就一并修改了，但是<code>.text</code>却没有修改具体内容，<br>其内容中对symbol的引用还没有更新，这是因为对<code>.text</code>内容的修改需要用到<code>.symtab</code><br>和<code>.rel.text</code>，现在它们都准备妥当了，是时候更新<code>.text</code>中对symbol的引用了。</p>
+<ol>
+<li>需要更新哪些引用呢？<code>.text</code>中都是二进制比特，如何区分哪些是需要更新的引用？<br><code>.rel.text</code>中记录的就是需要更新的引用。</li>
+<li>这些引用需要更新为什么内容呢，即新的地址是什么？<code>.symtab</code>中有记录。</li>
+<li>如何更新呢，即更新算法是什么？<code>.rel.text</code>中每个条目都记录了更新方法。</li>
+</ol>
+<p>重定位类型，即<code>rel.text</code>中<code>type</code>定义的类型，有很多种，但是最常用的只有两种：</p>
+<ol>
+<li>相对地址引用，R_386_PC32，R_X86_64_PC32，不同体系结构名称不同</li>
+<li>绝对地址引用，R_386_32，R_X86_64_32，不同体系结构名称不同</li>
+</ol>
+<p>相对地址引用是从当前正在执行的指令的PC值开始计数，当CPU碰到相对地址引用时，<br>会取出当前的PC值，然后跟引用值相加，这样就得到正确的地址了。比如<br><code>0x400500: call 0x7</code>，CPU执行到这条指令的时候就会取出当前PC值(<code>0x400500</code>），<br>然后加上引用值(<code>0x7</code>)，于是得到新的指令地址(<code>0x400507</code>)，就会跳转到该值处<br>的函数继续执行。</p>
+<p>绝对地址引用是从所在的section开始计数，即绝对地址引用就是节内偏移量。</p>
+<p>重定位算法如下，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line">    RT_ADDR(x): 获取x的运行时地址</span><br><span class="line"> */</span></span><br><span class="line">foreach section s &#123;</span><br><span class="line">    foreach relocation entry r &#123;</span><br><span class="line">        <span class="comment">/*</span><br><span class="line">            refptr: 合并后的section中，需要更新的引用的地址</span><br><span class="line">            s: 合并后section的地址，如txt_sec_ptr</span><br><span class="line">            r.offset: 需要更新的引用在section中的偏移量(合并section时已经更新过了)</span><br><span class="line">         */</span></span><br><span class="line">        refptr = s + r.offset;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 更新相对地址引用</span></span><br><span class="line">        <span class="keyword">if</span>(r.type == R_386_PC32) &#123;</span><br><span class="line">            <span class="comment">// 运行时引用的地址 = 运行时section的地址 + 引用的偏移量</span></span><br><span class="line">            rt_refaddr = RT_ADDR(s) + r.offset;</span><br><span class="line">            <span class="comment">/* </span><br><span class="line">                更新合并后的section中引用的值。</span><br><span class="line">                括号中的减法很显然，symbol的运行时地址减掉引用的运行时地址，</span><br><span class="line">                就得到了偏移量，这不就结束了吗，为何还要加上 *refptr 呢？</span><br><span class="line">                见后面的分析。</span><br><span class="line">             */</span></span><br><span class="line">            *refptr = (RT_ADDR(r.symbol) - rt_refaddr) + *refptr;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 更新绝对地址引用</span></span><br><span class="line">        <span class="keyword">if</span>(r.type == R_386_32) &#123;</span><br><span class="line">            <span class="comment">// 为何还要加一个 *refptr(总是零？)</span></span><br><span class="line">            *refptr = RT_ADDR(r.symbol) + *refptr;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为何还要加上<code>*refptr</code>？</p>
+<p>根本原因是PC总是指向当前指令的下一条指令。所以我们要想得到当前指令地址就要根据<br>下一条指令地址计算才行，但是当前指令是多大呢？这个在编译的时候会知道，另外不同<br>的指令编码方式(32bit? 64bit?)也会对这个偏移产生影响，所以在编译期就确定这个微调<br>的值，从而链接器就不用大费周章的去区分不同机器的指令编码方式了。</p>
+<h5 id="更新相对地址引用">更新相对地址引用</h5><ol>
+<li>取得需要更新的引用的链接时地址： txt_sec_ptr + 重定位表项中记录的offset</li>
+<li>计算该引用的运行时地址： RT_ADDR(.text) + 重定位表项中记录的offset，section<br>的运行时地址是链接器固定死的，如<code>0x8048000</code>、<code>0x400000</code>等。</li>
+<li>计算所引用symbol的运行时地址： RT_ADDR(r.symbol)</li>
+<li>(3) - (2)记得到相对地址，然后赋值到(1)的地址处。</li>
+</ol>
+<h5 id="更新绝对地址引用">更新绝对地址引用</h5><ol>
+<li>取得需要更新的引用的链接时地址： txt_sec_ptr + 重定位表项中记录的offset</li>
+<li>取得symbol的地址，直接赋值到(1)的地址处即可。</li>
+</ol>
+<p>(over)</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/重定位/" rel="tag">#重定位</a>
+          
+            <a href="/tags/链接/" rel="tag">#链接</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/compiler/position-independent-code-in-shared-library/" rel="prev" title="位置无关代码的动态链接过程">
+                位置无关代码的动态链接过程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+        
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/res/avatars/ducky.jpg" alt="iGNU" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">iGNU</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ybin" target="_blank">
+                  <i class="fa fa-github fa-fw"></i> github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/ybsolar" target="_blank">
+                  <i class="fa fa-twitter fa-fw"></i> twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/ignu" target="_blank">
+                  <i class="fa fa-weibo fa-fw"></i> weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#我们的上游产品长什么样"><span class="nav-number">1.</span> <span class="nav-text">我们的上游产品长什么样</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#静态重定位"><span class="nav-number">2.</span> <span class="nav-text">静态重定位</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#重定位section"><span class="nav-number">2.1.</span> <span class="nav-text">重定位section</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#合并-text_section并设置运行时地址值，"><span class="nav-number">2.1.0.1.</span> <span class="nav-text">合并.text section并设置运行时地址值，</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#合并-symtab_section并修改symbol的offset值，"><span class="nav-number">2.1.0.2.</span> <span class="nav-text">合并.symtab section并修改symbol的offset值，</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#合并-rel-text_section并修改offset值，"><span class="nav-number">2.1.0.3.</span> <span class="nav-text">合并.rel.text section并修改offset值，</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重定位section中对symbol的引用"><span class="nav-number">2.2.</span> <span class="nav-text">重定位section中对symbol的引用</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#更新相对地址引用"><span class="nav-number">2.2.0.1.</span> <span class="nav-text">更新相对地址引用</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#更新绝对地址引用"><span class="nav-number">2.2.0.2.</span> <span class="nav-text">更新绝对地址引用</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+      
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">iGNU</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    motionMiddleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+
+      isMobile() && FastClick.attach(document.body);
+
+      // Define Motion Sequence.
+      motionIntegrator
+        .add(motionMiddleWares.logo)
+        .add(motionMiddleWares.menu)
+        .add(motionMiddleWares.backToTop)
+        .add(motionMiddleWares.postList)
+        .add(motionMiddleWares.sidebar);
+
+      // Bootstrap Motion.
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,762 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='//fonts.lug.ustc.edu.cn/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+
+
+  <meta name="keywords" content="init,xv6,操作系统," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iGNU's blog" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="xv6第一个进程的启动过程。涉及从系统引导进kernel到kernel的初始化，然后启动第一个进程的整个过程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xv6代码阅读：init进程的启动">
+<meta property="og:url" content="http://ybin.gitcafe.io/os/xv6-init-process/index.html">
+<meta property="og:site_name" content="iGNU's blog">
+<meta property="og:description" content="xv6第一个进程的启动过程。涉及从系统引导进kernel到kernel的初始化，然后启动第一个进程的整个过程。">
+<meta property="og:image" content="http://ybin.gitcafe.io/res/img/X86_Paging_4K.png">
+<meta property="og:image" content="http://ybin.gitcafe.io/res/img/X86_Paging_4M.png">
+<meta property="og:updated_time" content="2015-07-29T03:26:02.860Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="xv6代码阅读：init进程的启动">
+<meta name="twitter:description" content="xv6第一个进程的启动过程。涉及从系统引导进kernel到kernel的初始化，然后启动第一个进程的整个过程。">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> xv6代码阅读：init进程的启动 | iGNU's blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">iGNU's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu menu-left">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <form class="site-search-form">
+    <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+  </form>
+
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'd-CBG2sZDFQ4dxyLmzSk','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                xv6代码阅读：init进程的启动
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2014-12-26T14:46:01+08:00" content="2014-12-26">
+              2014-12-26
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/操作系统/" itemprop="url" rel="index">
+                    <span itemprop="name">操作系统</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>xv6第一个进程的启动过程。涉及从系统引导进kernel到kernel的初始化，然后启动第一个进程<br>的整个过程。</p>
+<a id="more"></a>
+<p>上一节系统引导分析了整个引导过程，接下来从kernel入口<code>_start</code>(entry.S)往下分析，主要<br>涉及到启动分页，内核初始化，启动多处理器，启动init进程。</p>
+<h3 id="启动分页">启动分页</h3><p>分页机制或者说MMU是什么不作介绍，这里说下分页机制的一些必要操作。<br>启动分页之前必须创建页表并设置给cr3寄存器，然后给cr0寄存器的PG位置为1。除此之外，<br>x86还允许创建不同粒度的内存页，这涉及到cr4寄存器。</p>
+<p>在x86中，一个也目录中可以同时存在两种粒度的内存页，4K或者4M，</p>
+<p><img src="/res/img/X86_Paging_4K.png" alt="X86 4KB page"></p>
+<p><img src="/res/img/X86_Paging_4M.png" alt="X86 4MB page"></p>
+<p>page dir是必须的，这是一个长度<strong>最大</strong>为1024的整数数组，如果页目录表项的PS位置为1<br>且cr4寄存器的PSE位置为1，那么CPU自动使用4M大小的内存页，即该页目录表项中保存的就是<br>内存页的起始地址，这相当于进行二级分页而不是更常见的三级分页。如果这两个要求不能同时<br>满足就进行三级分页。</p>
+<p>注意x86运行两种分页同时存在，比如cr4的PSE位设为1，而有些page dir表项设置PS位而有些<br>则不设置，这样就同时存在两种分页机制。为何要使用4MB页呢，考虑这种场景：kernel img<br>大小大约为1M，如果使用4M页映射kernel img，则TLB只需缓存一个页目录项即可，而如果是<br>4K页则需要256个页目录项，这么多的表项是无法都缓存到TLB中的，这会使得地址翻译变慢很多。<br>所以kernel img部分一般用一个4M页进行映射，而其他则使用4K页。</p>
+<p>对于xv6来说，使用4M页只是临时，不用创建复杂的页表，如此而已，<br>内核启动之后很快就会重新创建页表。</p>
+<figure class="highlight"><figcaption><span>entry.S</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.globl _start&#10;_start = V2P_WO(entry) # kernel&#30340;&#20837;&#21475;&#20173;&#28982;&#26159;&#20302;&#22320;&#22336;&#20540;&#65292;&#22240;&#20026;&#27492;&#26102;&#20998;&#39029;&#36824;&#27809;&#26377;&#24320;&#21551;&#10;&#10;# Entering xv6 on boot processor, with paging off.&#10;.globl entry&#10;entry:&#10;  # &#35774;&#32622;cr4&#65292;&#20351;&#29992;4M&#39029;&#65292;&#36825;&#26679;&#21019;&#24314;&#30340;&#39029;&#34920;&#27604;&#36739;&#31616;&#21333;&#10;  movl    %cr4, %eax&#10;  orl     $(CR4_PSE), %eax&#10;  movl    %eax, %cr4&#10;  # &#35774;&#32622;cr3&#10;  movl    $(V2P_WO(entrypgdir)), %eax&#10;  movl    %eax, %cr3&#10;  # &#21551;&#21160;&#20998;&#39029;&#10;  movl    %cr0, %eax&#10;  orl     $(CR0_PG|CR0_WP), %eax&#10;  movl    %eax, %cr0&#10;&#10;  # &#21019;&#24314;CPU&#26632;&#65292;&#36825;&#20010;&#26159;&#35813;CPU&#29420;&#26377;&#30340;&#65292;&#21551;&#21160;&#20854;&#20182;CPU&#26102;&#65292;&#27599;&#20010;&#37117;&#33258;&#24049;&#30340;stack&#10;  movl $(stack + KSTACKSIZE), %esp&#10;  &#10;  # &#36827;&#20837;&#39640;&#22320;&#22336;&#31354;&#38388;(2GB&#20197;&#19978;)&#10;  mov $main, %eax&#10;  jmp *%eax&#10;&#10;# common symbol&#65292;&#24320;&#36767;stack&#21306;&#22495;&#65292;&#22823;&#23567;&#20026;KSTACKSIZE&#10;.comm stack, KSTACKSIZE</span><br></pre></td></tr></table></figure>
+<p>我们来看看页目录<code>entrypgdir</code>是什么样子的，</p>
+<figure class="highlight c"><figcaption><span>main.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">pde_t</span> entrypgdir[NPDENTRIES] = &#123;</span><br><span class="line">  <span class="comment">// Map VA's [0, 4MB) to PA's [0, 4MB)</span></span><br><span class="line">  [<span class="number">0</span>] = (<span class="number">0</span>) | PTE_P | PTE_W | PTE_PS,</span><br><span class="line">  <span class="comment">// Map VA's [KERNBASE, KERNBASE+4MB) to PA's [0, 4MB)</span></span><br><span class="line">  [KERNBASE&gt;&gt;PDXSHIFT] = (<span class="number">0</span>) | PTE_P | PTE_W | PTE_PS,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>疑问：为何要将0~4M进行1:1映射呢？在开启分页之前我们都是小心翼翼的使用“低地址”，<br>而打开分页之后我们将会跳转到“高地址”，低地址还有必要映射吗？有必要。在启动多处理器<br>的时候，还需要从低地址启动，因为这些CPU（non-boot CPU，也叫做AP）要需要从real mode<br>启动，见entryOther.S</p>
+<h3 id="内核初始化">内核初始化</h3><p>到现在为止，只有boot CPU在运转，其他CPU需要boot CPU去启动才行，在启动之前，boot<br>CPU先要作必要的初始化工作。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span></span><br><span class="line"><span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">  <span class="comment">// 初始化kernel img结束位置直到4M之间的虚拟内存，kernel code</span></span><br><span class="line">  <span class="comment">// 从1MB处开始，大约有1MB的大小，所以剩余2MB可以用来kalloc</span></span><br><span class="line">  kinit1(end, P2V(<span class="number">4</span>*<span class="number">1024</span>*<span class="number">1024</span>)); <span class="comment">// phys page allocator</span></span><br><span class="line">  kvmalloc();      <span class="comment">// kernel page table</span></span><br><span class="line">  mpinit();        <span class="comment">// collect info about this machine</span></span><br><span class="line">  lapicinit();</span><br><span class="line">  seginit();       <span class="comment">// set up segments</span></span><br><span class="line">  cprintf(<span class="string">"\ncpu%d: starting xv6\n\n"</span>, cpu-&gt;id);</span><br><span class="line">  picinit();       <span class="comment">// interrupt controller</span></span><br><span class="line">  ioapicinit();    <span class="comment">// another interrupt controller</span></span><br><span class="line">  consoleinit();   <span class="comment">// I/O devices &amp; their interrupts</span></span><br><span class="line">  uartinit();      <span class="comment">// serial port</span></span><br><span class="line">  pinit();         <span class="comment">// process table</span></span><br><span class="line">  tvinit();        <span class="comment">// trap vectors</span></span><br><span class="line">  binit();         <span class="comment">// buffer cache</span></span><br><span class="line">  fileinit();      <span class="comment">// file table</span></span><br><span class="line">  iinit();         <span class="comment">// inode cache</span></span><br><span class="line">  ideinit();       <span class="comment">// disk</span></span><br><span class="line">  <span class="keyword">if</span>(!ismp)</span><br><span class="line">    timerinit();   <span class="comment">// uniprocessor timer</span></span><br><span class="line">  startothers();   <span class="comment">// start other processors</span></span><br><span class="line">  <span class="comment">// 初始化4M直到PHYSTOP部分的内存</span></span><br><span class="line">  kinit2(P2V(<span class="number">4</span>*<span class="number">1024</span>*<span class="number">1024</span>), P2V(PHYSTOP)); <span class="comment">// must come after startothers()</span></span><br><span class="line">  userinit();      <span class="comment">// first user process</span></span><br><span class="line">  <span class="comment">// Finish setting up this processor in mpmain.</span></span><br><span class="line">  mpmain();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>初始化部分其实是很复杂的，牵涉到各个部分，现在我们只是简单的提及，后续做详细介绍。<br><code>kinit1()</code>，初始化<code>end~4MB</code>这一段内存，这样<code>kalloc()</code>就能分配出内存来了。<br><code>kvmalloc()</code>重建内核页表并设置cr3切换到该页表，该页表会把IO空间，内核镜像等都建立<br>映射，这些空间全都是用户控件可见的，位于2GB以上，其定义如下，</p>
+<figure class="highlight c"><figcaption><span>vm.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">struct</span> kmap &#123;</span><br><span class="line">  <span class="keyword">void</span> *virt;</span><br><span class="line">  uint phys_start;</span><br><span class="line">  uint phys_end;</span><br><span class="line">  <span class="keyword">int</span> perm;</span><br><span class="line">&#125; kmap[] = &#123;</span><br><span class="line"> &#123; (<span class="keyword">void</span>*)KERNBASE, <span class="number">0</span>,             EXTMEM,    PTE_W&#125;, <span class="comment">// I/O space</span></span><br><span class="line"> &#123; (<span class="keyword">void</span>*)KERNLINK, V2P(KERNLINK), V2P(data), <span class="number">0</span>&#125;,     <span class="comment">// kern text+rodata</span></span><br><span class="line"> &#123; (<span class="keyword">void</span>*)data,     V2P(data),     PHYSTOP,   PTE_W&#125;, <span class="comment">// kern data+memory</span></span><br><span class="line"> &#123; (<span class="keyword">void</span>*)DEVSPACE, DEVSPACE,      <span class="number">0</span>,         PTE_W&#125;, <span class="comment">// more devices</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><code>seginit()</code>初始化段寄存器，注意，logical address指的是”段内地址”，<br>virtual address又叫做线性地址，这里的设置把所有段(除gs段)基址均设为0，<br>这样实际就取消分段机制了。</p>
+<figure class="highlight c"><figcaption><span>vm.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line"> cpus[] --&gt; +------------------------+                +---------+ &lt;-- %gs of CPU0</span><br><span class="line">            |                        |                | %gs:0~3 |                </span><br><span class="line">            |         ......         |                +---------+                </span><br><span class="line">            |                        |                | %gs:3~7 |                </span><br><span class="line">      +---&gt; +------------------------+                +---------+                </span><br><span class="line">      |     |      uchar id          |                                           </span><br><span class="line">      |     |    struct context*     |                +---------+ &lt;-- %gs of CPU1</span><br><span class="line">      |     |  struct segdesc gdt[]  |      +-------+ | %gs:0~3 |                </span><br><span class="line">      |     |        ......          |      |         +---------+                </span><br><span class="line">      |     +------------------------+      | +-----+ | %gs:3~7 |                </span><br><span class="line">      +---- |    struct cpu *cpu     | &lt;----+ |       +---------+                </span><br><span class="line">            +------------------------+        |                                  </span><br><span class="line">            |   struct proc *proc    | &lt;------+                                  </span><br><span class="line">            +------------------------+                +---------+ &lt;-- %gs of CPU2</span><br><span class="line">            |                        |                | %gs:0~3 |                </span><br><span class="line">            |         ......         |                +---------+                </span><br><span class="line">            |                        |                | %gs:3~7 |                </span><br><span class="line">            +------------------------+                +---------+                </span><br><span class="line"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span></span><br><span class="line"><span class="title">seginit</span><span class="params">(<span class="keyword">void</span>)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">  <span class="keyword">struct</span> cpu *c;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Map "logical" addresses to virtual addresses using identity map.</span></span><br><span class="line">  <span class="comment">// Cannot share a CODE descriptor for both kernel and user</span></span><br><span class="line">  <span class="comment">// because it would have to have DPL_USR, but the CPU forbids</span></span><br><span class="line">  <span class="comment">// an interrupt from CPL=0 to DPL=3.</span></span><br><span class="line">  c = &amp;cpus[cpunum()];</span><br><span class="line">  c-&gt;gdt[SEG_KCODE] = SEG(STA_X|STA_R, <span class="number">0</span>, <span class="number">0xffffffff</span>, <span class="number">0</span>);</span><br><span class="line">  c-&gt;gdt[SEG_KDATA] = SEG(STA_W, <span class="number">0</span>, <span class="number">0xffffffff</span>, <span class="number">0</span>);</span><br><span class="line">  c-&gt;gdt[SEG_UCODE] = SEG(STA_X|STA_R, <span class="number">0</span>, <span class="number">0xffffffff</span>, DPL_USER);</span><br><span class="line">  c-&gt;gdt[SEG_UDATA] = SEG(STA_W, <span class="number">0</span>, <span class="number">0xffffffff</span>, DPL_USER);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Map cpu, and curproc</span></span><br><span class="line">  <span class="comment">// 基址: struct cpu的cpu属性地址，参考struct cpu的定义，</span></span><br><span class="line">  <span class="comment">// cpu、proc两个属性恰好一前一后挨着。</span></span><br><span class="line">  c-&gt;gdt[SEG_KCPU] = SEG(STA_W, &amp;c-&gt;cpu, <span class="number">8</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">  lgdt(c-&gt;gdt, <span class="keyword">sizeof</span>(c-&gt;gdt));</span><br><span class="line">  loadgs(SEG_KCPU &lt;&lt; <span class="number">3</span>);</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// Initialize cpu-local storage.</span></span><br><span class="line">  cpu = c;</span><br><span class="line">  proc = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// proc.h</span></span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="keyword">struct</span> cpu *cpu <span class="title">asm</span><span class="params">(<span class="string">"%gs:0"</span>)</span></span>;       <span class="comment">// &amp;cpus[cpunum()]</span></span><br><span class="line"><span class="function"><span class="keyword">extern</span> <span class="keyword">struct</span> proc *proc <span class="title">asm</span><span class="params">(<span class="string">"%gs:4"</span>)</span></span>;     <span class="comment">// cpus[cpunum()].proc</span></span><br></pre></td></tr></table></figure>
+<h3 id="启动多处理器">启动多处理器</h3><p>多处理器的启动是通过<code>IPI</code>，即Inter-Processor Instructions进行的，这是CPU间的通讯方式。<br><code>startothers()</code>来启动其他non-boot CPU，做法是：</p>
+<ol>
+<li>复制启动代码到<code>0x7000</code>处，这部分代码相当于boot CPU的启动扇区代码</li>
+<li>为每个AP分配stack（是的，每个CPU都一个自己的stack）</li>
+<li>告诉每个AP，kernel入口在哪里(mpenter函数)</li>
+<li>告诉每个AP，页目录在哪里(entrypgdir)</li>
+</ol>
+<p>然后控制local apic进行CPU间通讯，依次启动其他CPU。启动之后他们会执行mpenter()，进而进入<br>scheduler()开始执行程序。</p>
+<h3 id="启动init进程">启动init进程</h3><p>boot CPU启动其他CPU之后，自己继续执行<code>kinit2()</code>初始化剩余的内存空间，然后开始启动init进程。<br>在<code>userinit()</code>中，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">userinit</span><span class="params">(<span class="keyword">void</span>)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">  <span class="keyword">struct</span> proc *p;</span><br><span class="line">  <span class="keyword">extern</span> <span class="keyword">char</span> _binary_initcode_start[], _binary_initcode_size[];</span><br><span class="line">  <span class="comment">// 分配进程数据结构并初始化</span></span><br><span class="line">  p = allocproc();</span><br><span class="line">  initproc = p;</span><br><span class="line">  <span class="comment">// 创建页目录，也就是说创建进程地址空间，setupkvm()会将kernel部分映射进来</span></span><br><span class="line">  <span class="keyword">if</span>((p-&gt;pgdir = setupkvm()) == <span class="number">0</span>)</span><br><span class="line">    panic(<span class="string">"userinit: out of memory?"</span>);</span><br><span class="line">  <span class="comment">// 分配用户空间物理内存，并映射到虚拟内存的0处</span></span><br><span class="line">  inituvm(p-&gt;pgdir, _binary_initcode_start, (<span class="keyword">int</span>)_binary_initcode_size);</span><br><span class="line">  p-&gt;sz = PGSIZE;</span><br><span class="line">  <span class="built_in">memset</span>(p-&gt;tf, <span class="number">0</span>, <span class="keyword">sizeof</span>(*p-&gt;tf));</span><br><span class="line">  p-&gt;tf-&gt;cs = (SEG_UCODE &lt;&lt; <span class="number">3</span>) | DPL_USER;</span><br><span class="line">  p-&gt;tf-&gt;ds = (SEG_UDATA &lt;&lt; <span class="number">3</span>) | DPL_USER;</span><br><span class="line">  p-&gt;tf-&gt;es = p-&gt;tf-&gt;ds;</span><br><span class="line">  p-&gt;tf-&gt;ss = p-&gt;tf-&gt;ds;</span><br><span class="line">  p-&gt;tf-&gt;eflags = FL_IF;</span><br><span class="line">  p-&gt;tf-&gt;esp = PGSIZE;</span><br><span class="line">  p-&gt;tf-&gt;eip = <span class="number">0</span>;  <span class="comment">// beginning of initcode.S</span></span><br><span class="line"></span><br><span class="line">  safestrcpy(p-&gt;name, <span class="string">"initcode"</span>, <span class="keyword">sizeof</span>(p-&gt;name));</span><br><span class="line">  p-&gt;cwd = namei(<span class="string">"/"</span>);</span><br><span class="line"></span><br><span class="line">  p-&gt;state = RUNNABLE;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="创建进程数据结构">创建进程数据结构</h5><p>首先创建进程数据结构，然后初始化，并设其状态为RUNNABLE，等待进入scheduler()<br>执行，这里需要特殊说明的是<code>allocproc()</code>函数，它在全局变量<code>ptable</code>中寻找UNUSED的进程结构，<br>如果找到就做必要的初始化，然后将其返回，否则返回0，即空指针。其初始化过程包括修改进程状态，<br>设置进程pid，构建进程的kenel stack（每个进程都有一个对应的内核栈）。内核栈的构建是这样的，</p>
+<figure class="highlight c"><figcaption><span>proc.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// p为找到的进程结构</span></span><br><span class="line"><span class="keyword">if</span>((p-&gt;kstack = kalloc()) == <span class="number">0</span>)&#123;</span><br><span class="line">  p-&gt;state = UNUSED;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// stack逆向增长</span></span><br><span class="line">sp = p-&gt;kstack + KSTACKSIZE;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Leave room for trap frame.</span></span><br><span class="line">sp -= <span class="keyword">sizeof</span> *p-&gt;tf;</span><br><span class="line">p-&gt;tf = (<span class="keyword">struct</span> trapframe*)sp;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Set up new context to start executing at forkret,</span></span><br><span class="line"><span class="comment">// which returns to trapret.</span></span><br><span class="line">sp -= <span class="number">4</span>;</span><br><span class="line">*(uint*)sp = (uint)trapret;</span><br><span class="line"></span><br><span class="line"><span class="comment">// set up context</span></span><br><span class="line">sp -= <span class="keyword">sizeof</span> *p-&gt;context;</span><br><span class="line">p-&gt;context = (<span class="keyword">struct</span> context*)sp;</span><br><span class="line"><span class="built_in">memset</span>(p-&gt;context, <span class="number">0</span>, <span class="keyword">sizeof</span> *p-&gt;context);</span><br><span class="line">p-&gt;context-&gt;eip = (uint)forkret;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> p;</span><br></pre></td></tr></table></figure>
+<p>每个进程的创建都是这样的，不论是init进程还是fork创建的普通进程。进程的内核栈到底什么样子呢，<br>图示如下，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line">进程的kernel stack初始化状态，</span><br><span class="line"></span><br><span class="line">                  /   +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line">                  |   | ss            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | esp           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | eflags        |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | cs            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | eip           | &lt;-- 从此往上部分，在iret时自动弹出到相关寄存器中，只需把%esp指到这里即可</span><br><span class="line">                  |   +---------------+    </span><br><span class="line">                  |   | err           |  </span><br><span class="line">                  |   +---------------+  </span><br><span class="line">                  |   | trapno        |  </span><br><span class="line">                  |   +---------------+                       </span><br><span class="line">                  |   | ds            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | es            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | fs            |                           </span><br><span class="line"> struct trapframe |   +---------------+                           </span><br><span class="line">                  |   | gs            |                           </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | eax           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ecx           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | edx           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ebx           |   </span><br><span class="line">                  |   +---------------+                        </span><br><span class="line">                  |   | oesp          |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ebp           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | esi           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | edi           |   </span><br><span class="line">                  \   +---------------+ &lt;-- p-&gt;tf                 </span><br><span class="line">                      | trapret       |                           </span><br><span class="line">                  /   +---------------+ &lt;-- forkret will return to</span><br><span class="line">                  |   | eip(=forkret) | &lt;-- return addr           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | ebp           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">   struct context |   | ebx           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | esi           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | edi           |                           </span><br><span class="line">                  \   +-------+-------+ &lt;-- p-&gt;context            </span><br><span class="line">                      |       |       |                           </span><br><span class="line">                      |       v       |                           </span><br><span class="line">                      |     empty     |                           </span><br><span class="line">                      +---------------+ &lt;-- p-&gt;kstack           </span><br><span class="line"> */</span></span><br></pre></td></tr></table></figure>
+<p>当然，这样的初始化结果是经过精心设计的，比如<code>trapret()</code>、<code>forkret()</code>函数地址的设置。</p>
+<p>注意trapframe里的eip正是进入用户态之后执行的程序的入口，init进程跟普通进程<br>的差别就在这里了，init进程设置的eip=0，在此之前0这里已经放置了initcode.S的<br>内容，而普通进程这里设置的是elf-&gt;entry，即程序的main()函数。</p>
+<h5 id="构建进程地址空间">构建进程地址空间</h5><p>接下来为进程创建页目录，也就是构建进程地址空间，这里会把kernel也映射到<br>进程空间，</p>
+<figure class="highlight c"><figcaption><span>vm.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span></span><br><span class="line"><span class="title">inituvm</span><span class="params">(pde_t *pgdir, <span class="keyword">char</span> *init, uint sz)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> *mem;</span><br><span class="line">  <span class="keyword">if</span>(sz &gt;= PGSIZE)</span><br><span class="line">    panic(<span class="string">"inituvm: more than a page"</span>);</span><br><span class="line">  <span class="comment">// 分配用户态物理内存</span></span><br><span class="line">  mem = kalloc();</span><br><span class="line">  <span class="built_in">memset</span>(mem, <span class="number">0</span>, PGSIZE);</span><br><span class="line">  <span class="comment">// 映射到用户虚拟地址 0 处</span></span><br><span class="line">  mappages(pgdir, <span class="number">0</span>, PGSIZE, v2p(mem), PTE_W|PTE_U);</span><br><span class="line">  <span class="comment">// 准备init进程的执行代码</span></span><br><span class="line">  memmove(mem, init, sz);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="进入调度器开始执行">进入调度器开始执行</h5><p>boot CPU继续执行进入<code>scheduler()</code>函数，它线性遍历ptable寻找<br>RUNNABLE的进程，找到之后就执行，无穷循环，</p>
+<figure class="highlight c"><figcaption><span>开始执行进程p</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">proc = p; <span class="comment">// proc变量记录当前CPU正在执行的进程</span></span><br><span class="line">switchuvm(p);</span><br><span class="line">p-&gt;state = RUNNING;</span><br><span class="line"><span class="comment">// swtch返回到forkret函数中，见p-&gt;kstack的context设置， 以及swtch.S</span></span><br><span class="line">swtch(&amp;cpu-&gt;scheduler, proc-&gt;context);</span><br><span class="line">switchkvm();</span><br><span class="line"></span><br><span class="line"><span class="comment">// Process is done running for now.</span></span><br><span class="line"><span class="comment">// It should have changed its p-&gt;state before coming back.</span></span><br><span class="line">proc = <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+<p>进程数据结构创建之后就做好准备被调度了，在scheduler()中，首先要进行user vm<br>的设置，即<code>switchuvm(p)</code>，它会设置TSS段并且将其中的ss0设置为SEG_KDATA，把<br>esp0设置成p-&gt;kstack+KSTACKSIZE，也就是该进程内核栈的栈底(stack base，上图)，<br>然后<code>ltr(SEG_TSS&lt;&lt;3)</code>，这会让CPU在执行<code>iret</code>时使用该TSS的内容。设置ss0, esp0<br>的意思就是说，该进程以后被中断或者trap时，无论什么情况，只要进入kernel，那么<br>就使用这个stack，也就是说告诉进程它的返程路线是什么。</p>
+<p>然后切换到进程页目录，注意，因为kernel空间也映射进用户也目录了，<br>所以kernel在切换页目录之后依然正常执行，标记为进程状态之后开始启动进程，看<code>swtch()</code>，</p>
+<figure class="highlight"><figcaption><span>swtch.S</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.globl swtch&#10;swtch:&#10;  movl 4(%esp), %eax  # cpu context&#10;  movl 8(%esp), %edx  # proc context&#10;&#10;  # Save old callee-save registers&#10;  # &#26087;&#30340;context&#36827;&#26632;&#65292;&#36827;&#30340;&#26159;&#26159;CPU&#30340;&#26632;&#65292;&#19981;&#26159;&#36827;&#31243;&#20869;&#26680;&#26632;&#10;  pushl %ebp&#10;  pushl %ebx&#10;  pushl %esi&#10;  pushl %edi&#10;&#10;  # Switch stacks&#10;  movl %esp, (%eax) # %esp&#27492;&#26102;&#25191;&#34892;&#19978;&#38754;&#22235;&#20010;&#23492;&#23384;&#22120;&#20449;&#24687;&#65292;&#29616;&#22312;&#32473;cpu&#30340;context&#21464;&#37327;&#36171;&#20540;&#10;  movl %edx, %esp   # %esp&#25351;&#21521;&#26032;&#30340;proc&#30340;context&#65292;&#19978;&#22270;&#20013;&#30340;p-&#62;context&#10;&#10;  # Load new callee-save registers&#10;  popl %edi&#10;  popl %esi&#10;  popl %ebx&#10;  popl %ebp&#10;  # popl&#20043;&#21518;&#65292;&#21097;&#19979;&#30340;&#26159;eip&#65292;&#35265;&#19978;&#22270;&#65292;ret&#20250;&#36820;&#22238;&#34;ret addr&#34;&#22788;&#32487;&#32493;&#25191;&#34892;&#65292;&#20063;&#23601;&#26159;&#36820;&#22238;&#21040;forkret()&#32487;&#32493;&#25191;&#34892;&#10;  ret</span><br></pre></td></tr></table></figure>
+<p><code>forkret()</code>启动了一个log之后就返回了，接下来在栈中的是<code>trapret()</code>的地址，于是返回到<code>trapret()</code><br>继续执行，</p>
+<figure class="highlight"><figcaption><span>trapasm.S</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.globl trapret&#10;trapret:&#10;  popal&#10;  popl %gs&#10;  popl %fs&#10;  popl %es&#10;  popl %ds&#10;  addl $0x8, %esp  # trapno and errcode&#10;  iret</span><br></pre></td></tr></table></figure>
+<p>继续看上面的图，<code>popal</code>弹出一堆寄存器值，<code>popl</code>又弹出一堆，然后<code>addl $0x8, %esp</code>越过<br>trapno和errcode，接下来的就成了<code>eip</code>了(见<code>struct trapframe</code>)，然后<code>iret</code>(interrupt return)，<br>返回到<code>eip</code>指定的地址继续执行，回到<code>userinit()</code>函数，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">memset</span>(p-&gt;tf, <span class="number">0</span>, <span class="keyword">sizeof</span>(*p-&gt;tf));</span><br><span class="line"><span class="comment">// 进入用户态之后使用这些值</span></span><br><span class="line">p-&gt;tf-&gt;cs = (SEG_UCODE &lt;&lt; <span class="number">3</span>) | DPL_USER;</span><br><span class="line">p-&gt;tf-&gt;ds = (SEG_UDATA &lt;&lt; <span class="number">3</span>) | DPL_USER;</span><br><span class="line">p-&gt;tf-&gt;es = p-&gt;tf-&gt;ds;</span><br><span class="line">p-&gt;tf-&gt;ss = p-&gt;tf-&gt;ds;</span><br><span class="line">p-&gt;tf-&gt;eflags = FL_IF;</span><br><span class="line">p-&gt;tf-&gt;esp = PGSIZE; <span class="comment">// 用户栈从page size处逆向增长</span></span><br><span class="line">p-&gt;tf-&gt;eip = <span class="number">0</span>;  <span class="comment">// beginning of initcode.S，用户态代码</span></span><br></pre></td></tr></table></figure>
+<p>我们回到用户空间的0处执行，而此处已经被<code>inituvm()</code>放置上initcode.S的内容了，<br>也就是说接下来执行initcode.S的内容。这个文件很简单，通过系统调用exec执行<code>/init</code>程序而已。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line"> init进程的内存布局：</span><br><span class="line"> </span><br><span class="line"> +--------------------+ 4GB                        </span><br><span class="line"> |                    |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> +--------------------+ KERNBASE+PHYSTOP(2GB+224MB)</span><br><span class="line"> |                    |                            </span><br><span class="line"> |   direct mapped    |                            </span><br><span class="line"> |   kernel memory    |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> +--------------------+                            </span><br><span class="line"> |    Kernel Data     |                            </span><br><span class="line"> +--------------------+ data                       </span><br><span class="line"> |    Kernel Code     |                            </span><br><span class="line"> +--------------------+ KERNLINK(2GB+1MB)          </span><br><span class="line"> |   I/O Space(1MB)   |                            </span><br><span class="line"> +--------------------+ KERNBASE(2GB)              </span><br><span class="line"> |                    |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> +---------+----------+ PGSIZE &lt;-- %esp                            </span><br><span class="line"> |         v          |                            </span><br><span class="line"> |       stack        |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> |                    |                            </span><br><span class="line"> |     initcode.S     |                            </span><br><span class="line"> +--------------------+ 0  &lt;-- %eip               </span><br><span class="line">*/</span></span><br></pre></td></tr></table></figure>
+<p>(over)</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/init/" rel="tag">#init</a>
+          
+            <a href="/tags/xv6/" rel="tag">#xv6</a>
+          
+            <a href="/tags/操作系统/" rel="tag">#操作系统</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/os/xv6-boot/" rel="next" title="xv6代码阅读：系统引导">
+                <i class="fa fa-chevron-left"></i> xv6代码阅读：系统引导
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/os/xv6-trap-and-interrupt/" rel="prev" title="xv6代码阅读：traps and interrupts">
+                xv6代码阅读：traps and interrupts <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+        
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/res/avatars/ducky.jpg" alt="iGNU" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">iGNU</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ybin" target="_blank">
+                  <i class="fa fa-github fa-fw"></i> github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/ybsolar" target="_blank">
+                  <i class="fa fa-twitter fa-fw"></i> twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/ignu" target="_blank">
+                  <i class="fa fa-weibo fa-fw"></i> weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#启动分页"><span class="nav-number">1.</span> <span class="nav-text">启动分页</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内核初始化"><span class="nav-number">2.</span> <span class="nav-text">内核初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动多处理器"><span class="nav-number">3.</span> <span class="nav-text">启动多处理器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动init进程"><span class="nav-number">4.</span> <span class="nav-text">启动init进程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#创建进程数据结构"><span class="nav-number">4.0.1.</span> <span class="nav-text">创建进程数据结构</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#构建进程地址空间"><span class="nav-number">4.0.2.</span> <span class="nav-text">构建进程地址空间</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进入调度器开始执行"><span class="nav-number">4.0.3.</span> <span class="nav-text">进入调度器开始执行</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+      
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">iGNU</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    motionMiddleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+
+      isMobile() && FastClick.attach(document.body);
+
+      // Define Motion Sequence.
+      motionIntegrator
+        .add(motionMiddleWares.logo)
+        .add(motionMiddleWares.menu)
+        .add(motionMiddleWares.backToTop)
+        .add(motionMiddleWares.postList)
+        .add(motionMiddleWares.sidebar);
+
+      // Bootstrap Motion.
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

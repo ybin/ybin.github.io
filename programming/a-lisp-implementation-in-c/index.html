@@ -1,0 +1,740 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='//fonts.lug.ustc.edu.cn/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+
+
+  <meta name="keywords" content="c,lisp," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iGNU's blog" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="一个简易的Lisp实现，in C。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一个简单的Lisp实现">
+<meta property="og:url" content="http://ybin.gitcafe.io/programming/a-lisp-implementation-in-c/index.html">
+<meta property="og:site_name" content="iGNU's blog">
+<meta property="og:description" content="一个简易的Lisp实现，in C。">
+<meta property="og:updated_time" content="2015-10-23T07:22:20.138Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一个简单的Lisp实现">
+<meta name="twitter:description" content="一个简易的Lisp实现，in C。">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> 一个简单的Lisp实现 | iGNU's blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">iGNU's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu menu-left">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <form class="site-search-form">
+    <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+  </form>
+
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'd-CBG2sZDFQ4dxyLmzSk','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                一个简单的Lisp实现
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2015-01-12T10:08:00+08:00" content="2015-01-12">
+              2015-01-12
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/编程/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>一个简易的Lisp实现，in C。</p>
+<a id="more"></a>
+<p>这个Lisp实现是基于John McCarthy的论文完成的，原文在<a href="https://github.com/nakkaya/nakkaya.com/blob/master/resources/posts/2010-08-24-a-micro-manual-for-lisp-implemented-in-c.org" target="_blank" rel="external">这里</a>，此处只是把lisp.c这个文件抽取、整理。</p>
+<h3 id="编译">编译</h3><p><code>gcc -o lisp lisp.c &amp;&amp; ./lisp test.lisp</code></p>
+<h3 id="代码">代码</h3><figure class="highlight"><figcaption><span>lisp.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br><span class="line">354</span><br><span class="line">355</span><br><span class="line">356</span><br><span class="line">357</span><br><span class="line">358</span><br><span class="line">359</span><br><span class="line">360</span><br><span class="line">361</span><br><span class="line">362</span><br><span class="line">363</span><br><span class="line">364</span><br><span class="line">365</span><br><span class="line">366</span><br><span class="line">367</span><br><span class="line">368</span><br><span class="line">369</span><br><span class="line">370</span><br><span class="line">371</span><br><span class="line">372</span><br><span class="line">373</span><br><span class="line">374</span><br><span class="line">375</span><br><span class="line">376</span><br><span class="line">377</span><br><span class="line">378</span><br><span class="line">379</span><br><span class="line">380</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">#include &lt;ctype.h&gt;</span><br><span class="line">#include &lt;string.h&gt;</span><br><span class="line"></span><br><span class="line">//</span><br><span class="line">// data structure</span><br><span class="line">//</span><br><span class="line"></span><br><span class="line">#define car(X)        (((cons_object *) (X))-&gt;car)</span><br><span class="line">#define cdr(X)        (((cons_object *) (X))-&gt;cdr)</span><br><span class="line"></span><br><span class="line">enum type &#123;</span><br><span class="line">    CONS, ATOM, FUNC, LAMBDA</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">typedef struct &#123;</span><br><span class="line">    enum type type;</span><br><span class="line">&#125; object;</span><br><span class="line"></span><br><span class="line">typedef struct &#123;</span><br><span class="line">    enum type type;</span><br><span class="line">    char *name;</span><br><span class="line">&#125; atom_object;</span><br><span class="line"></span><br><span class="line">typedef struct &#123;</span><br><span class="line">    enum type type;</span><br><span class="line">    object *car;</span><br><span class="line">    object *cdr;</span><br><span class="line">&#125; cons_object;</span><br><span class="line"></span><br><span class="line">typedef struct &#123;</span><br><span class="line">    enum type type;</span><br><span class="line">    object* (*fn)(object*, object*);</span><br><span class="line">&#125; func_object;</span><br><span class="line"></span><br><span class="line">typedef struct &#123;</span><br><span class="line">    enum type type;</span><br><span class="line">    object* args;</span><br><span class="line">    object* sexp;</span><br><span class="line">&#125; lambda_object;</span><br><span class="line"></span><br><span class="line">object *tee, *nil;</span><br><span class="line"></span><br><span class="line">object *eval(object *sexp, object *env);</span><br><span class="line"></span><br><span class="line">//</span><br><span class="line">// internal functions</span><br><span class="line">//</span><br><span class="line"></span><br><span class="line">static char *name(object *o) &#123;</span><br><span class="line">    if (o-&gt;type != ATOM)</span><br><span class="line">        exit(1);</span><br><span class="line">    return ((atom_object*) o)-&gt;name;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static object *atom(char *n) &#123;</span><br><span class="line">    atom_object *ptr = (atom_object *) malloc(sizeof(atom_object));</span><br><span class="line">    ptr-&gt;type = ATOM;</span><br><span class="line">    char *name;</span><br><span class="line">    name = malloc(strlen(n) + 1);</span><br><span class="line">    strcpy(name, n);</span><br><span class="line">    ptr-&gt;name = name;</span><br><span class="line">    return (object *) ptr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static object *cons(object *first, object *second) &#123;</span><br><span class="line">    cons_object *ptr = (cons_object *) malloc(sizeof(cons_object));</span><br><span class="line">    ptr-&gt;type = CONS;</span><br><span class="line">    ptr-&gt;car = first;</span><br><span class="line">    ptr-&gt;cdr = second;</span><br><span class="line">    return (object *) ptr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static object *func(object* (*fn)(object*, object*)) &#123;</span><br><span class="line">    func_object *ptr = (func_object *) malloc(sizeof(func_object));</span><br><span class="line">    ptr-&gt;type = FUNC;</span><br><span class="line">    ptr-&gt;fn = fn;</span><br><span class="line">    return (object *) ptr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static void append(object *list, object *obj) &#123;</span><br><span class="line">    object *ptr;</span><br><span class="line">    for (ptr = list; cdr(ptr) != NULL; ptr = cdr(ptr))</span><br><span class="line">        ;</span><br><span class="line">    cdr(ptr) = cons(obj, NULL);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static object *lambda(object *args, object *sexp) &#123;</span><br><span class="line">    lambda_object *ptr = (lambda_object *) malloc(sizeof(lambda_object));</span><br><span class="line">    ptr-&gt;type = LAMBDA;</span><br><span class="line">    ptr-&gt;args = args;</span><br><span class="line">    ptr-&gt;sexp = sexp;</span><br><span class="line">    return (object *) ptr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static object *interleave(object *c1, object *c2) &#123;</span><br><span class="line">    object *list = cons(cons(car(c1), cons(car(c2), NULL)), NULL);</span><br><span class="line">    c1 = cdr(c1);</span><br><span class="line">    c2 = cdr(c2);</span><br><span class="line"></span><br><span class="line">    while (c1 != NULL &amp;&amp; c1-&gt;type == CONS) &#123;</span><br><span class="line">        append(list, cons(car(c1), cons(car(c2), NULL)));</span><br><span class="line">        c1 = cdr(c1);</span><br><span class="line">        c2 = cdr(c2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return list;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static object *replace_atom(object *sexp, object *with) &#123;</span><br><span class="line">    if (sexp-&gt;type == CONS) &#123;</span><br><span class="line">        object *list = cons(replace_atom(car(sexp), with), NULL);</span><br><span class="line">        sexp = cdr(sexp);</span><br><span class="line"></span><br><span class="line">        while (sexp != NULL &amp;&amp; sexp-&gt;type == CONS) &#123;</span><br><span class="line">            append(list, replace_atom(car(sexp), with));</span><br><span class="line">            sexp = cdr(sexp);</span><br><span class="line">        &#125;</span><br><span class="line">        return list;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        object* tmp = with;</span><br><span class="line"></span><br><span class="line">        while (tmp != NULL &amp;&amp; tmp-&gt;type == CONS) &#123;</span><br><span class="line">            object *item = car(tmp);</span><br><span class="line">            object *atom = car(item);</span><br><span class="line">            object *replacement = car(cdr(item));</span><br><span class="line"></span><br><span class="line">            if (strcmp(name(atom), name(sexp)) == 0)</span><br><span class="line">                return replacement;</span><br><span class="line">            tmp = cdr(tmp);</span><br><span class="line">        &#125;</span><br><span class="line">        return sexp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">static object* lookup(char* n, object *env) &#123;</span><br><span class="line">    object *tmp = env;</span><br><span class="line"></span><br><span class="line">    while (tmp != NULL &amp;&amp; tmp-&gt;type == CONS) &#123;</span><br><span class="line">        object *item = car(tmp);</span><br><span class="line">        object *nm = car(item);</span><br><span class="line">        object *val = car(cdr(item));</span><br><span class="line"></span><br><span class="line">        if (strcmp(name(nm), n) == 0)</span><br><span class="line">            return val;</span><br><span class="line">        tmp = cdr(tmp);</span><br><span class="line">    &#125;</span><br><span class="line">    return NULL;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//</span><br><span class="line">// buildin functions</span><br><span class="line">//</span><br><span class="line"></span><br><span class="line">object *fn_car(object *args, object *env) &#123;</span><br><span class="line">    return car(car(args));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *fn_cdr(object *args, object *env) &#123;</span><br><span class="line">    return cdr(car(args));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *fn_quote(object *args, object *env) &#123;</span><br><span class="line">    return car(args);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *fn_cons(object *args, object *env) &#123;</span><br><span class="line">    object *list = cons(car(args), NULL);</span><br><span class="line">    args = car(cdr(args));</span><br><span class="line">    while (args != NULL &amp;&amp; args-&gt;type == CONS) &#123;</span><br><span class="line">        append(list, car(args));</span><br><span class="line">        args = cdr(args);</span><br><span class="line">    &#125;</span><br><span class="line">    return list;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *fn_equal(object *args, object *env) &#123;</span><br><span class="line">    object *first = car(args);</span><br><span class="line">    object *second = car(cdr(args));</span><br><span class="line">    if (strcmp(name(first), name(second)) == 0)</span><br><span class="line">        return tee;</span><br><span class="line">    else</span><br><span class="line">        return nil;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *fn_atom(object *args, object *env) &#123;</span><br><span class="line">    if (car(args)-&gt;type == ATOM)</span><br><span class="line">        return tee;</span><br><span class="line">    else</span><br><span class="line">        return nil;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *fn_cond(object *args, object *env) &#123;</span><br><span class="line">    while (args != NULL &amp;&amp; args-&gt;type == CONS) &#123;</span><br><span class="line">        object *list = car(args);</span><br><span class="line">        object *pred = nil;</span><br><span class="line">        if (car(list) != nil)</span><br><span class="line">            pred = eval(car(list), env);</span><br><span class="line"></span><br><span class="line">        object *ret = car(cdr(list));</span><br><span class="line"></span><br><span class="line">        if (pred != nil)</span><br><span class="line">            return eval(ret, env);</span><br><span class="line">        args = cdr(args);</span><br><span class="line">    &#125;</span><br><span class="line">    return nil;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *fn_lambda(object *args, object *env) &#123;</span><br><span class="line">    object *lambda = car(args);</span><br><span class="line">    args = cdr(args);</span><br><span class="line"></span><br><span class="line">    object *list = interleave((((lambda_object *) (lambda))-&gt;args), args);</span><br><span class="line">    object* sexp = replace_atom((((lambda_object *) (lambda))-&gt;sexp), list);</span><br><span class="line">    return eval(sexp, env);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *fn_label(object *args, object *env) &#123;</span><br><span class="line">    append(env, cons(atom(name(car(args))), cons(car(cdr(args)), NULL)));</span><br><span class="line">    return tee;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object* init_env() &#123;</span><br><span class="line">    object *env = cons(cons(atom("QUOTE"), cons(func(&amp;fn_quote), NULL)), NULL);</span><br><span class="line">    append(env, cons(atom("CAR"), cons(func(&amp;fn_car), NULL)));</span><br><span class="line">    append(env, cons(atom("CDR"), cons(func(&amp;fn_cdr), NULL)));</span><br><span class="line">    append(env, cons(atom("CONS"), cons(func(&amp;fn_cons), NULL)));</span><br><span class="line">    append(env, cons(atom("EQUAL"), cons(func(&amp;fn_equal), NULL)));</span><br><span class="line">    append(env, cons(atom("ATOM"), cons(func(&amp;fn_atom), NULL)));</span><br><span class="line">    append(env, cons(atom("COND"), cons(func(&amp;fn_cond), NULL)));</span><br><span class="line">    append(env, cons(atom("LAMBDA"), cons(func(&amp;fn_lambda), NULL)));</span><br><span class="line">    append(env, cons(atom("LABEL"), cons(func(&amp;fn_label), NULL)));</span><br><span class="line"></span><br><span class="line">    tee = atom("#T");</span><br><span class="line">    nil = cons(NULL, NULL);</span><br><span class="line"></span><br><span class="line">    return env;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//</span><br><span class="line">// I/O</span><br><span class="line">//</span><br><span class="line"></span><br><span class="line">void print(object *sexp) &#123;</span><br><span class="line">    if (sexp == NULL)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    if (sexp-&gt;type == CONS) &#123;</span><br><span class="line">        printf("(");</span><br><span class="line">        print(car(sexp));</span><br><span class="line">        sexp = cdr(sexp);</span><br><span class="line">        while (sexp != NULL &amp;&amp; sexp-&gt;type == CONS) &#123;</span><br><span class="line">            printf(" ");</span><br><span class="line">            print(car(sexp));</span><br><span class="line">            sexp = cdr(sexp);</span><br><span class="line">        &#125;</span><br><span class="line">        printf(")");</span><br><span class="line">    &#125; else if (sexp-&gt;type == ATOM) &#123;</span><br><span class="line">        printf("%s", name(sexp));</span><br><span class="line">    &#125; else if (sexp-&gt;type == LAMBDA) &#123;</span><br><span class="line">        printf("#");</span><br><span class="line">        print((((lambda_object *) (sexp))-&gt;args));</span><br><span class="line">        print((((lambda_object *) (sexp))-&gt;sexp));</span><br><span class="line">    &#125; else</span><br><span class="line">        printf("Error.");</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *next_token(FILE *in) &#123;</span><br><span class="line">    int ch = getc(in);</span><br><span class="line">    while (isspace(ch))</span><br><span class="line">        ch = getc(in);</span><br><span class="line">    if (ch == '\n')</span><br><span class="line">        ch = getc(in);</span><br><span class="line">    if (ch == EOF)</span><br><span class="line">        exit(0);</span><br><span class="line">    if (ch == ')')</span><br><span class="line">        return atom(")");</span><br><span class="line">    if (ch == '(')</span><br><span class="line">        return atom("(");</span><br><span class="line">    char buffer[128];</span><br><span class="line">    int index = 0;</span><br><span class="line">    while (!isspace(ch) &amp;&amp; ch != ')') &#123;</span><br><span class="line">        buffer[index++] = ch;</span><br><span class="line">        ch = getc(in);</span><br><span class="line">    &#125;</span><br><span class="line">    buffer[index++] = '\0';</span><br><span class="line">    if (ch == ')')</span><br><span class="line">        ungetc(ch, in);</span><br><span class="line"></span><br><span class="line">    return atom(buffer);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *read_tail(FILE *in) &#123;</span><br><span class="line">    object *token = next_token(in);</span><br><span class="line"></span><br><span class="line">    if (strcmp(name(token), ")") == 0)</span><br><span class="line">        return NULL;</span><br><span class="line">    else if (strcmp(name(token), "(") == 0) &#123;</span><br><span class="line">        object *first = read_tail(in);</span><br><span class="line">        object *second = read_tail(in);</span><br><span class="line">        return cons(first, second);</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        object *first = token;</span><br><span class="line">        object *second = read_tail(in);</span><br><span class="line">        return cons(first, second);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *read(FILE *in) &#123;</span><br><span class="line">    object *token = next_token(in);</span><br><span class="line">    if (strcmp(name(token), "(") == 0)</span><br><span class="line">        return read_tail(in);</span><br><span class="line">    return token;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//</span><br><span class="line">// REPL</span><br><span class="line">//</span><br><span class="line"></span><br><span class="line">object *eval_fn(object *sexp, object *env) &#123;</span><br><span class="line">    object *symbol = car(sexp);</span><br><span class="line">    object *args = cdr(sexp);</span><br><span class="line"></span><br><span class="line">    if (symbol-&gt;type == LAMBDA)</span><br><span class="line">        return fn_lambda(sexp, env);</span><br><span class="line">    else if (symbol-&gt;type == FUNC)</span><br><span class="line">        return (((func_object *) (symbol))-&gt;fn)(args, env);</span><br><span class="line">    else</span><br><span class="line">        return sexp;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">object *eval(object *sexp, object *env) &#123;</span><br><span class="line">    if (sexp == NULL)</span><br><span class="line">        return nil;</span><br><span class="line"></span><br><span class="line">    if (sexp-&gt;type == CONS) &#123;</span><br><span class="line">        if (car(sexp)-&gt;type == ATOM &amp;&amp; strcmp(name(car(sexp)), "LAMBDA") == 0) &#123;</span><br><span class="line">            object* largs = car(cdr(sexp));</span><br><span class="line">            object* lsexp = car(cdr(cdr(sexp)));</span><br><span class="line">            return lambda(largs, lsexp);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            object *accum = cons(eval(car(sexp), env), NULL);</span><br><span class="line">            sexp = cdr(sexp);</span><br><span class="line">            while (sexp != NULL &amp;&amp; sexp-&gt;type == CONS) &#123;</span><br><span class="line">                append(accum, eval(car(sexp), env));</span><br><span class="line">                sexp = cdr(sexp);</span><br><span class="line">            &#125;</span><br><span class="line">            return eval_fn(accum, env);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        object *val = lookup(name(sexp), env);</span><br><span class="line">        if (val == NULL)</span><br><span class="line">            return sexp;</span><br><span class="line">        else</span><br><span class="line">            return val;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//</span><br><span class="line">// main</span><br><span class="line">//</span><br><span class="line"></span><br><span class="line">int main(int argc, char *argv[]) &#123;</span><br><span class="line">    object *env = init_env();</span><br><span class="line">    FILE* in;</span><br><span class="line"></span><br><span class="line">    if (argc &gt; 1)</span><br><span class="line">        in = fopen(argv[1], "r");</span><br><span class="line">    else</span><br><span class="line">        in = stdin;</span><br><span class="line"></span><br><span class="line">    do &#123;</span><br><span class="line">        printf("&gt; ");</span><br><span class="line">        print(eval(read(in), env));</span><br><span class="line">        printf("\n");</span><br><span class="line">    &#125; while (1);</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试文件，</p>
+<figure class="highlight lisp"><figcaption><span>test.lisp</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="list">(<span class="keyword">QUOTE</span> A)</span></span><br><span class="line"><span class="list">(<span class="keyword">QUOTE</span> <span class="list">(<span class="keyword">A</span> B C)</span>)</span></span><br><span class="line"><span class="list">(<span class="keyword">CAR</span> <span class="list">(<span class="keyword">QUOTE</span> <span class="list">(<span class="keyword">A</span> B C)</span>)</span>)</span></span><br><span class="line"><span class="list">(<span class="keyword">CDR</span> <span class="list">(<span class="keyword">QUOTE</span> <span class="list">(<span class="keyword">A</span> B C)</span>)</span>)</span></span><br><span class="line"><span class="list">(<span class="keyword">CONS</span> <span class="list">(<span class="keyword">QUOTE</span> A)</span> <span class="list">(<span class="keyword">QUOTE</span> <span class="list">(<span class="keyword">B</span> C)</span>)</span>)</span></span><br><span class="line"><span class="list">(<span class="keyword">EQUAL</span> <span class="list">(<span class="keyword">CAR</span> <span class="list">(<span class="keyword">QUOTE</span> <span class="list">(<span class="keyword">A</span> B)</span>)</span>)</span> <span class="list">(<span class="keyword">QUOTE</span> A)</span>)</span></span><br><span class="line"><span class="list">(<span class="keyword">EQUAL</span> <span class="list">(<span class="keyword">CAR</span> <span class="list">(<span class="keyword">CDR</span> <span class="list">(<span class="keyword">QUOTE</span> <span class="list">(<span class="keyword">A</span> B)</span>)</span>)</span>)</span> <span class="list">(<span class="keyword">QUOTE</span> A)</span>)</span></span><br><span class="line"><span class="list">(<span class="keyword">ATOM</span> <span class="list">(<span class="keyword">QUOTE</span> A)</span>)</span></span><br><span class="line"><span class="list">(<span class="keyword">COND</span> <span class="list">(<span class="list">(<span class="keyword">ATOM</span> <span class="list">(<span class="keyword">QUOTE</span> A)</span>)</span> <span class="list">(<span class="keyword">QUOTE</span> B)</span>)</span> <span class="list">(<span class="list">(<span class="keyword">QUOTE</span> T)</span> <span class="list">(<span class="keyword">QUOTE</span> C)</span>)</span>)</span></span><br><span class="line"><span class="list">(<span class="list">(<span class="keyword">LAMBDA</span> <span class="list">(<span class="keyword">X</span> Y)</span> <span class="list">(<span class="keyword">CONS</span> <span class="list">(<span class="keyword">CAR</span> X)</span> Y)</span>)</span> <span class="list">(<span class="keyword">QUOTE</span> <span class="list">(<span class="keyword">A</span> B)</span>)</span> <span class="list">(<span class="keyword">CDR</span> <span class="list">(<span class="keyword">QUOTE</span> <span class="list">(<span class="keyword">C</span> D)</span>)</span>)</span>)</span></span><br><span class="line"><span class="list">(<span class="keyword">LABEL</span> FF <span class="list">(<span class="keyword">LAMBDA</span> <span class="list">(<span class="keyword">X</span> Y)</span> <span class="list">(<span class="keyword">CONS</span> <span class="list">(<span class="keyword">CAR</span> X)</span> Y)</span>)</span>)</span></span><br><span class="line"><span class="list">(<span class="keyword">FF</span> <span class="list">(<span class="keyword">QUOTE</span> <span class="list">(<span class="keyword">A</span> B)</span>)</span> <span class="list">(<span class="keyword">CDR</span> <span class="list">(<span class="keyword">QUOTE</span> <span class="list">(<span class="keyword">C</span> D)</span>)</span>)</span>)</span></span><br><span class="line"><span class="list">(<span class="keyword">LABEL</span> XX <span class="list">(<span class="keyword">QUOTE</span> <span class="list">(<span class="keyword">A</span> B)</span>)</span>)</span></span><br><span class="line"><span class="list">(<span class="keyword">CAR</span> XX)</span></span><br></pre></td></tr></table></figure>
+<h3 id="论文中的Lisp实现">论文中的Lisp实现</h3><p>Lisp就像几何一样，整个大厦建立在几个公理基础之上，Lisp要求实现如下几个函数，<br>其他都可以由他们推演出来，</p>
+<ol>
+<li><code>quote</code></li>
+<li><code>car</code></li>
+<li><code>cdr</code></li>
+<li><code>cons</code></li>
+<li><code>equal</code></li>
+<li><code>atom</code></li>
+<li><code>cond</code></li>
+<li>An atom, regarded as a variable, may have a value</li>
+<li><code>lambda</code></li>
+<li><code>label</code>，即给lambda函数命名，函数也是一个变量的值</li>
+</ol>
+<p>John McCarthy在其论文中用Lisp实现了Lisp，下面是代码及自己的注释，整个就是一个<code>eval</code>函数而已，<br><code>lambda</code>的实现很精彩啊！</p>
+<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">; e - the expression to be evaluted</span></span><br><span class="line"><span class="comment">; a - the associate table, every element is a (variable, value) pair</span></span><br><span class="line"></span><br><span class="line"><span class="list">(<span class="keyword">label</span> eval</span><br><span class="line">       <span class="list">(<span class="keyword">lambda</span> <span class="list">(<span class="keyword">e</span> a)</span></span><br><span class="line">               <span class="list">(<span class="keyword">cond</span></span><br><span class="line">                <span class="comment">; e is an atom</span></span><br><span class="line">                <span class="list">(<span class="list">(<span class="keyword">atom</span> e)</span></span><br><span class="line">                 <span class="list">(<span class="keyword">cond</span> <span class="list">(<span class="list">(<span class="keyword">eq</span> e <span class="literal">nil</span>)</span> <span class="literal">nil</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> e T)</span> T)</span></span><br><span class="line">                       <span class="comment">; e is an atom otherwise nil or T,</span></span><br><span class="line">                       <span class="comment">; so, find it in assoc table if exists</span></span><br><span class="line">                       <span class="list">(<span class="keyword">T</span> <span class="list">(<span class="keyword">cdr</span> <span class="list">(<span class="list">(<span class="keyword">label</span></span><br><span class="line">                                 assoc</span><br><span class="line">                                 <span class="list">(<span class="keyword">lambda</span> <span class="list">(<span class="keyword">e</span> a)</span></span><br><span class="line">                                         <span class="list">(<span class="keyword">cond</span> <span class="list">(<span class="list">(<span class="keyword">null</span> a)</span> <span class="literal">nil</span>)</span></span><br><span class="line">                                               <span class="list">(<span class="list">(<span class="keyword">eq</span> e <span class="list">(<span class="keyword">caar</span> a)</span>)</span> <span class="list">(<span class="keyword">car</span> a)</span>)</span></span><br><span class="line">                                               <span class="list">(<span class="keyword">T</span> <span class="list">(<span class="keyword">assoc</span> e <span class="list">(<span class="keyword">cdr</span> a)</span>)</span>)</span>)</span>)</span>)</span></span><br><span class="line">                                e a)</span>)</span>)</span>)</span>)</span></span><br><span class="line">                </span><br><span class="line">                <span class="comment">; e is not atom, so it must be list</span></span><br><span class="line">                <span class="comment">; the first element of e is an atom</span></span><br><span class="line">                <span class="list">(<span class="list">(<span class="keyword">atom</span> <span class="list">(<span class="keyword">car</span> e)</span>)</span></span><br><span class="line">                 <span class="list">(<span class="keyword">cond</span> <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> quote)</span>)</span>   <span class="comment">; call quote</span></span><br><span class="line">                        <span class="list">(<span class="keyword">cadr</span> e)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> car)</span>)</span>     <span class="comment">; call car</span></span><br><span class="line">                        <span class="list">(<span class="keyword">car</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadr</span> e)</span> a)</span>)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> cdr)</span>)</span>     <span class="comment">; call cdr</span></span><br><span class="line">                        <span class="list">(<span class="keyword">cdr</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadr</span> e)</span> a)</span>)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> cadr)</span>)</span>    <span class="comment">; call cadr</span></span><br><span class="line">                        <span class="list">(<span class="keyword">cadr</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadr</span> e)</span> a)</span>)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> caddr)</span>)</span>   <span class="comment">; call caddr</span></span><br><span class="line">                        <span class="list">(<span class="keyword">caddr</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadr</span> e)</span> a)</span>)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> caar)</span>)</span>    <span class="comment">; call caar</span></span><br><span class="line">                        <span class="list">(<span class="keyword">caadr</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadr</span> e)</span> a)</span>)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> cadar)</span>)</span>   <span class="comment">; call cadar</span></span><br><span class="line">                        <span class="list">(<span class="keyword">cadar</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadr</span> e)</span> a)</span>)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> caddar)</span>)</span>  <span class="comment">; call caddar</span></span><br><span class="line">                        <span class="list">(<span class="keyword">caddar</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadr</span> e)</span> a)</span>)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> atom)</span>)</span>    <span class="comment">; call atom</span></span><br><span class="line">                        <span class="list">(<span class="keyword">atom</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadr</span> e)</span> a)</span>)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> null)</span>)</span>    <span class="comment">; call null</span></span><br><span class="line">                        <span class="list">(<span class="keyword">null</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadr</span> e)</span> a)</span>)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> cons)</span>)</span>    <span class="comment">; call cons</span></span><br><span class="line">                        <span class="list">(<span class="keyword">cons</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadr</span> e)</span> a)</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">caddr</span> e)</span> a)</span>)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> eq)</span>)</span>      <span class="comment">; call eq</span></span><br><span class="line">                        <span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadr</span> e)</span> a)</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">caddr</span> e)</span> a)</span>)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">car</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> cond)</span>)</span>    <span class="comment">; call cond</span></span><br><span class="line">                        <span class="list">(<span class="list">(<span class="keyword">label</span> evcond</span><br><span class="line">                                <span class="list">(<span class="keyword">lambda</span> <span class="list">(<span class="keyword">v</span> a)</span> <span class="list">(<span class="keyword">cond</span> <span class="list">(<span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">caar</span> v)</span> a)</span></span><br><span class="line">                                                     <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cadar</span> v)</span> a)</span>)</span></span><br><span class="line">                                                    <span class="list">(<span class="keyword">T</span> <span class="list">(<span class="keyword">evcond</span> <span class="list">(<span class="keyword">cdr</span> v)</span> a)</span>)</span>)</span>)</span>)</span></span><br><span class="line">                         <span class="list">(<span class="keyword">cdr</span> e)</span> a)</span>)</span></span><br><span class="line">                       <span class="list">(<span class="keyword">T</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cons</span> <span class="list">(<span class="keyword">cdr</span> <span class="list">(<span class="list">(<span class="keyword">label</span>   <span class="comment">; call the 'value' of first element</span></span><br><span class="line">                                             assoc</span><br><span class="line">                                             <span class="list">(<span class="keyword">lambda</span> <span class="list">(<span class="keyword">e</span> a)</span></span><br><span class="line">                                                     <span class="list">(<span class="keyword">cond</span> <span class="list">(<span class="list">(<span class="keyword">null</span> a)</span> <span class="literal">nil</span>)</span></span><br><span class="line">                                                           <span class="list">(<span class="list">(<span class="keyword">eq</span> e <span class="list">(<span class="keyword">caar</span> a)</span>)</span> <span class="list">(<span class="keyword">car</span> a)</span>)</span></span><br><span class="line">                                                           <span class="list">(<span class="keyword">T</span> <span class="list">(<span class="keyword">assoc</span> e <span class="list">(<span class="keyword">cdr</span> a)</span>)</span>)</span>)</span>)</span>)</span></span><br><span class="line">                                            <span class="list">(<span class="keyword">car</span> e)</span> a)</span>)</span></span><br><span class="line">                                      <span class="list">(<span class="keyword">cdr</span> e)</span>)</span></span><br><span class="line">                                a)</span>)</span>)</span>)</span></span><br><span class="line">                <span class="comment">; the first element of e is not atom, so it must be a list,</span></span><br><span class="line">                <span class="comment">; the first element of e is lambda expression</span></span><br><span class="line">                <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">caar</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> lambda)</span>)</span></span><br><span class="line">                 <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">caddar</span> e)</span>        <span class="comment">; 取得lambda表达式的内容，下面准备参数，注意下面三个步骤的顺序，三层嵌套函数</span></span><br><span class="line">                       <span class="list">(<span class="list">(<span class="keyword">label</span> ffappend  <span class="comment">; 3.将参数的值对儿添加到assoc table中去</span></span><br><span class="line">                               <span class="list">(<span class="keyword">lambda</span> <span class="list">(<span class="keyword">u</span> v)</span></span><br><span class="line">                                       <span class="list">(<span class="keyword">cond</span> <span class="list">(<span class="list">(<span class="keyword">null</span> u)</span> v)</span></span><br><span class="line">                                             <span class="list">(<span class="keyword">T</span> <span class="list">(<span class="keyword">cons</span> <span class="list">(<span class="keyword">car</span> u)</span></span><br><span class="line">                                                      <span class="list">(<span class="keyword">ffappend</span> <span class="list">(<span class="keyword">cdr</span> u)</span> v)</span>)</span>)</span>)</span>)</span>)</span></span><br><span class="line">                        <span class="list">(<span class="list">(<span class="keyword">label</span> pairup   <span class="comment">; 2.将参数与真实值绑定成对</span></span><br><span class="line">                                <span class="list">(<span class="keyword">lambda</span> <span class="list">(<span class="keyword">u</span> v)</span></span><br><span class="line">                                        <span class="list">(<span class="keyword">cond</span> <span class="list">(<span class="list">(<span class="keyword">null</span> u)</span> <span class="literal">nil</span>)</span></span><br><span class="line">                                              <span class="list">(<span class="keyword">T</span> <span class="list">(<span class="keyword">cons</span> <span class="list">(<span class="keyword">cons</span> <span class="list">(<span class="keyword">car</span> u)</span> <span class="list">(<span class="keyword">car</span> v)</span>)</span></span><br><span class="line">                                                       <span class="list">(<span class="keyword">pairup</span> <span class="list">(<span class="keyword">cdr</span> u)</span> <span class="list">(<span class="keyword">cdr</span> v)</span>)</span>)</span>)</span>)</span>)</span>)</span></span><br><span class="line">                         <span class="list">(<span class="keyword">cadar</span> e)</span></span><br><span class="line">                         <span class="list">(<span class="list">(<span class="keyword">label</span> evlis   <span class="comment">; 1.计算参数的值</span></span><br><span class="line">                                 <span class="list">(<span class="keyword">lambda</span> <span class="list">(<span class="keyword">u</span> a)</span></span><br><span class="line">                                         <span class="list">(<span class="keyword">cond</span> <span class="list">(<span class="list">(<span class="keyword">null</span> u)</span> <span class="literal">nil</span>)</span></span><br><span class="line">                                               <span class="list">(<span class="keyword">T</span> <span class="list">(<span class="keyword">cons</span> <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">car</span> u)</span> a)</span></span><br><span class="line">                                                        <span class="list">(<span class="keyword">evlis</span> <span class="list">(<span class="keyword">cdr</span> u)</span> a)</span>)</span>)</span>)</span>)</span>)</span></span><br><span class="line">                          <span class="list">(<span class="keyword">cdr</span> e)</span> a)</span>)</span></span><br><span class="line">                        a)</span>)</span>)</span></span><br><span class="line">                <span class="comment">; the first element of e is a label expression</span></span><br><span class="line">                <span class="list">(<span class="list">(<span class="keyword">eq</span> <span class="list">(<span class="keyword">caar</span> e)</span> <span class="quoted">(<span class="keyword">quote</span> label)</span>)</span></span><br><span class="line">                 <span class="list">(<span class="keyword">eval</span> <span class="list">(<span class="keyword">cons</span> <span class="list">(<span class="keyword">caddar</span> e)</span> <span class="list">(<span class="keyword">cdr</span> e)</span>)</span> <span class="comment">; construct the content of label expression(e.g. a lambda expression) and the arguments as final expression</span></span><br><span class="line">                       <span class="list">(<span class="keyword">cons</span> <span class="list">(<span class="keyword">cons</span> <span class="list">(<span class="keyword">cadar</span> e)</span> <span class="list">(<span class="keyword">car</span> e)</span>)</span> a)</span>)</span>)</span>)</span>)</span>)</span> <span class="comment">; add (label name, label content) pair to a(the assoc table)</span></span><br></pre></td></tr></table></figure>
+<p><code>(eval expr assoc-table)</code>函数(label)分为四部分：</p>
+<ol>
+<li>expr是一个atom</li>
+<li><code>(car expr)</code>是一个atom</li>
+<li><code>(car expr)</code>是一个lambda表达式</li>
+<li><code>(car expr)</code>是一个lable表达式(即函数定义)</li>
+</ol>
+<h3 id="疑问">疑问</h3><p>你可能注意到函数参数的可见性问题了，是的，两个函数的形参如果同名的话，会不会产生干扰呢？<br>不会的。<br>assoc table，也就是env，是一个list，它是一个顺序链表，当执行函数<code>func1(u, v)</code>的时候，u, v<br>的值对儿加入assoc table，注意它们是被加到表格的head的，当它们执行完成，assoc table又恢复原状了，<br>再次执行<code>func2(u, v)</code>时，并没有func1的形参的干扰，assoc table其实就像一个stack，<code>cons</code>函数<br>可以保证这一点。</p>
+<p>另外，向clojure的变量不可变性，更加保证了这一点。</p>
+<p>(over)</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/c/" rel="tag">#c</a>
+          
+            <a href="/tags/lisp/" rel="tag">#lisp</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/programming/deadlock/" rel="next" title="死锁">
+                <i class="fa fa-chevron-left"></i> 死锁
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/clojure/read-clojure-source-code-in-eclipse/" rel="prev" title="使用Eclipse阅读clojure源码(Java部分)">
+                使用Eclipse阅读clojure源码(Java部分) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+        
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/res/avatars/ducky.jpg" alt="iGNU" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">iGNU</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ybin" target="_blank">
+                  <i class="fa fa-github fa-fw"></i> github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/ybsolar" target="_blank">
+                  <i class="fa fa-twitter fa-fw"></i> twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/ignu" target="_blank">
+                  <i class="fa fa-weibo fa-fw"></i> weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#编译"><span class="nav-number">1.</span> <span class="nav-text">编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码"><span class="nav-number">2.</span> <span class="nav-text">代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#论文中的Lisp实现"><span class="nav-number">3.</span> <span class="nav-text">论文中的Lisp实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#疑问"><span class="nav-number">4.</span> <span class="nav-text">疑问</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+      
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">iGNU</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    motionMiddleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+
+      isMobile() && FastClick.attach(document.body);
+
+      // Define Motion Sequence.
+      motionIntegrator
+        .add(motionMiddleWares.logo)
+        .add(motionMiddleWares.menu)
+        .add(motionMiddleWares.backToTop)
+        .add(motionMiddleWares.postList)
+        .add(motionMiddleWares.sidebar);
+
+      // Bootstrap Motion.
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

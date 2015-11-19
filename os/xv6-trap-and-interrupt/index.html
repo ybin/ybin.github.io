@@ -1,0 +1,776 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='//fonts.lug.ustc.edu.cn/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+
+
+  <meta name="keywords" content="interrupt,trap,xv6,操作系统," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iGNU's blog" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="interrupt和trap在xv6上的实现，涉及到TSS，IDT等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xv6代码阅读：traps and interrupts">
+<meta property="og:url" content="http://ybin.gitcafe.io/os/xv6-trap-and-interrupt/index.html">
+<meta property="og:site_name" content="iGNU's blog">
+<meta property="og:description" content="interrupt和trap在xv6上的实现，涉及到TSS，IDT等。">
+<meta property="og:updated_time" content="2015-07-29T03:26:02.860Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="xv6代码阅读：traps and interrupts">
+<meta name="twitter:description" content="interrupt和trap在xv6上的实现，涉及到TSS，IDT等。">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> xv6代码阅读：traps and interrupts | iGNU's blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">iGNU's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu menu-left">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <form class="site-search-form">
+    <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+  </form>
+
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'd-CBG2sZDFQ4dxyLmzSk','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                xv6代码阅读：traps and interrupts
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2014-12-30T09:18:19+08:00" content="2014-12-30">
+              2014-12-30
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/操作系统/" itemprop="url" rel="index">
+                    <span itemprop="name">操作系统</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>interrupt和trap在xv6上的实现，涉及到TSS，IDT等。</p>
+<a id="more"></a>
+<h3 id="interrupt,_trap,_exception是什么">interrupt, trap, exception是什么</h3><p>在x86系统中，中断(interrupt)有如下分类，</p>
+<ol>
+<li>CPU外部中断 - 外部设备产生的中断，称为<strong>interrupt</strong><ol>
+<li>可屏蔽中断(interrupt，如IO设备)</li>
+<li>不可屏蔽中断(NMI)，如磁盘错误，极少发生，一旦发生别无他法</li>
+</ol>
+</li>
+<li>CPU内部中断 - 由CPU本身产生的中断<ol>
+<li>软件主动产生的中断，称为<strong>trap</strong></li>
+<li>CPU检测到的异常(如除数为0)，称为<strong>exception</strong></li>
+<li>潜在可恢复的错误，称为<strong>fault</strong>，如缺页故障</li>
+<li>不可恢复的错误，称为<strong>abort</strong></li>
+</ol>
+</li>
+</ol>
+<p>所有这些，interrupt, trap, exception，在CPU看来都是一样的，CPU称它们为<strong>中断</strong>，<br>所以interrupt有两个意思：泛指所有中断和特指外部中断，这需要根据上下文来区分。</p>
+<h3 id="task_state_segment(TSS)是什么">task state segment(TSS)是什么</h3><p>TSS，即任务状态段，它是GDT/LDT中的一个段描述符，用来<strong>提升</strong>CPU的运行级别，要使用<br>这个段，CPU当前运行级别(CPL)必须小于等于该段的DPL，TSS段中保存的是任务状态，即一堆<br>的寄存器值，值得注意的是三组寄存器值：</p>
+<ol>
+<li>ss0、esp0</li>
+<li>ss1, esp1</li>
+<li>ss2, esp2</li>
+</ol>
+<p>这三组寄存器是用来寻找栈的，x86提供0~3共四个级别，而TSS用来<strong>提升</strong>级别，所以低级别<br>可以提升到高级别，提升之后需要把当前的任务状态保存起来，其实就是保存到ssX, espX指定<br>的栈中，比如从3提升到0，则CPU自动将任务状态保存到ss0:esp0指定的栈中，级别3这一组就<br>不需要了，因为它是最低的级别了。</p>
+<h3 id="xv6是如何做的">xv6是如何做的</h3><p>每个进程，包括init进程，在创建之初就已经把该进程的kernel stack布局好了，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line">进程创建之初，其内核栈的样子：</span><br><span class="line"></span><br><span class="line">                  /   +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line">                  |   | ss            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | esp           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | eflags        |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | cs            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | eip           | &lt;-- 从此往上部分，在iret时自动弹出到相关寄存器中，只需把%esp指到这里即可</span><br><span class="line">                  |   +---------------+    </span><br><span class="line">                  |   | err           |  </span><br><span class="line">                  |   +---------------+  </span><br><span class="line">                  |   | trapno        |  </span><br><span class="line">                  |   +---------------+                       </span><br><span class="line">                  |   | ds            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | es            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | fs            |                           </span><br><span class="line"> struct trapframe |   +---------------+                           </span><br><span class="line">                  |   | gs            |                           </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | eax           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ecx           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | edx           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ebx           |   </span><br><span class="line">                  |   +---------------+                        </span><br><span class="line">                  |   | oesp          |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ebp           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | esi           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | edi           |   </span><br><span class="line">                  \   +---------------+ &lt;-- p-&gt;tf                 </span><br><span class="line">                      | trapret       |                           </span><br><span class="line">                  /   +---------------+ &lt;-- forkret will return to</span><br><span class="line">                  |   | eip(=forkret) | &lt;-- return addr           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | ebp           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">   struct context |   | ebx           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | esi           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | edi           |                           </span><br><span class="line">                  \   +-------+-------+ &lt;-- p-&gt;context            </span><br><span class="line">                      |       |       |                           </span><br><span class="line">                      |       v       |                           </span><br><span class="line">                      |     empty     |                           </span><br><span class="line">                      +---------------+ &lt;-- p-&gt;kstack             </span><br><span class="line"> */</span></span><br></pre></td></tr></table></figure>
+<p>这些在init process的分析中都已经说过了，因为CPU执行<code>iret</code>时会把trapframe的eip<br>弹出到%eip寄存器中进而转到这里执行，所以我们只需设置trapframe的eip变量就可以<br>控制CPU的下一个执行指令地址，转到用户态之后进程的内核栈就是空的了。</p>
+<p>接下来是trap的整个过程。我们以系统调用为例。</p>
+<h5 id="从int_$T_SYSCALL开始">从int $T_SYSCALL开始</h5><p>进行系统调用的方式是这样的：</p>
+<figure class="highlight as"><figcaption><span>exec system call</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">movl $SYS_exec, %eax</span><br><span class="line">int $T_SYSCALL</span><br></pre></td></tr></table></figure>
+<p>首先把trapno放到%eax里面，这个后续会用到。CPU在执行<code>int</code>指令时会自动跳转到相关的<br>中断处理程序里，也就是<code>vectorXXX</code>处，这里为每个中断设置了一个中断处理程序，xv6的<br>中断处理表是用vector.pl生成的，基本每个表项都是一样的，类似于这样，</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vector0:</span><br><span class="line">  pushl $0  # errcode</span><br><span class="line">  pushl $0  # T_SYSCALL</span><br><span class="line">  jmp alltraps</span><br></pre></td></tr></table></figure>
+<p><code>int</code>指令包含的内容是很多的，</p>
+<ol>
+<li>栈转换，stack转换到tr寄存器指定的tss里面的ss0:esp0，这是该进程对应的内核栈</li>
+<li>自动将相关寄存器的内容进栈：ss, esp(如果涉及到ring变化的话), eflag, cs, eip。<br>这样返回用户态之后才能恢复执行</li>
+<li>跳转到中断处理程序处</li>
+</ol>
+<p>跳转完成之后，内核栈是这个样子的，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line">这部分是CPU执行int指令时自动压栈的，</span><br><span class="line"></span><br><span class="line"> +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line"> | ss            |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | esp           |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | eflags        |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | cs            |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | eip           |</span><br><span class="line"> +---------------+ &lt;-- %esp</span><br><span class="line"> */</span></span><br></pre></td></tr></table></figure>
+<h5 id="中断处理程序">中断处理程序</h5><p>接着开始执行中断处理程序，在vectorXXX里面只是将errcode和trapno压栈，<br>errcode如果有的话都是0，trapno即系统调用的中断号T_SYSCALL，内核栈<br>变成这样了，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line"> +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line"> | ss            |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | esp           |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | eflags        |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | cs            |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | eip           |</span><br><span class="line"> +---------------+</span><br><span class="line"> | err           |</span><br><span class="line"> +---------------+</span><br><span class="line"> | trapno        |</span><br><span class="line"> +---------------+ &lt;-- %esp</span><br><span class="line">  */</span></span><br></pre></td></tr></table></figure>
+<p>然后jmp到alltraps继续执行，</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">  # vectors.S sends all traps here.</span><br><span class="line">.globl alltraps</span><br><span class="line">alltraps:</span><br><span class="line">  # Build trap frame.</span><br><span class="line">  pushl %ds</span><br><span class="line">  pushl %es</span><br><span class="line">  pushl %fs</span><br><span class="line">  pushl %gs</span><br><span class="line">  pushal</span><br><span class="line">  </span><br><span class="line">  # Set up data and per-cpu segments.</span><br><span class="line">  movw $(SEG_KDATA&lt;&lt;3), %ax</span><br><span class="line">  movw %ax, %ds</span><br><span class="line">  movw %ax, %es</span><br><span class="line">  movw $(SEG_KCPU&lt;&lt;3), %ax</span><br><span class="line">  movw %ax, %fs</span><br><span class="line">  movw %ax, %gs</span><br><span class="line"></span><br><span class="line">  # Call trap(tf), where tf=%esp</span><br><span class="line">  pushl %esp</span><br><span class="line">  call trap</span><br><span class="line">  addl $4, %esp</span><br><span class="line"></span><br><span class="line">  # Return falls through to trapret...</span><br><span class="line">  # 这句话的意思是代码继续往下执行完trapret。</span><br><span class="line">  # 'return'，名词；fall through to，动词，继续直到...</span><br><span class="line">.globl trapret</span><br><span class="line">trapret:</span><br><span class="line">  popal</span><br><span class="line">  popl %gs</span><br><span class="line">  popl %fs</span><br><span class="line">  popl %es</span><br><span class="line">  popl %ds</span><br><span class="line">  addl $0x8, %esp  # trapno and errcode</span><br><span class="line">  iret</span><br></pre></td></tr></table></figure>
+<p>一进来就是一通压栈，压入段寄存器，压入通用寄存器<code>pushal</code>，到此为止，内核栈又<br>变样子了，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line">                  /   +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line">                  |   | ss            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | esp           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | eflags        |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | cs            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | eip           | &lt;-- 从此往上部分，在iret时自动弹出到相关寄存器中，只需把%esp指到这里即可</span><br><span class="line">                  |   +---------------+    </span><br><span class="line">                  |   | err           |  </span><br><span class="line">                  |   +---------------+  </span><br><span class="line">                  |   | trapno        |  </span><br><span class="line">                  |   +---------------+                       </span><br><span class="line">                  |   | ds            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | es            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | fs            |                           </span><br><span class="line"> struct trapframe |   +---------------+                           </span><br><span class="line">                  |   | gs            |                           </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | eax           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ecx           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | edx           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ebx           |   </span><br><span class="line">                  |   +---------------+                        </span><br><span class="line">                  |   | oesp          |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ebp           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | esi           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | edi           |   </span><br><span class="line">                  \   +---------------+ &lt;-- %esp</span><br><span class="line"> */</span></span><br></pre></td></tr></table></figure>
+<p>OMG，整个栈，此时不就是一个trapframe结构吗？是的！修改一下段寄存器之后开始调用<br><code>trap()</code>函数，这是一个C函数，里面会处理所有的中断、trap，它的参数就是一个trapframe，</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 为trap()函数准备参数，struct trapframe*</span><br><span class="line">pushl %esp</span><br><span class="line">call trap</span><br><span class="line"># 干掉之前压栈的参数，完成之后%esp又指向trapframe结构了</span><br><span class="line">addl $4, %esp</span><br></pre></td></tr></table></figure>
+<p>到此为止，系统调用的实质工作已经完成了，接下来就要返回用户态了，也就是<code>trapret</code>，<br><code>alltraps</code>会自动往下执行到<code>trapret</code>。很显然，它要把寄存器恢复回去，</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">.globl trapret</span><br><span class="line">trapret:</span><br><span class="line">  popal     # 恢复通用寄存器</span><br><span class="line">  popl %gs  # 恢复各种段寄存器</span><br><span class="line">  popl %fs</span><br><span class="line">  popl %es</span><br><span class="line">  popl %ds</span><br><span class="line">  addl $0x8, %esp  # trapno and errcode，干掉这两个</span><br></pre></td></tr></table></figure>
+<p>我们故意把<code>iret</code>分开来，在<code>iret</code>执行前，内核栈样子是这样的，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line"> +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line"> | ss            |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | esp           |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | eflags        |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | cs            |                           </span><br><span class="line"> +---------------+                           </span><br><span class="line"> | eip           |</span><br><span class="line"> +---------------+</span><br><span class="line"> | err           |</span><br><span class="line"> +---------------+</span><br><span class="line"> | trapno        |</span><br><span class="line"> +---------------+ &lt;-- %esp</span><br><span class="line">  */</span></span><br></pre></td></tr></table></figure>
+<p>咦，好眼熟啊，对这正是CPU执行<code>int</code>之后内核栈的样子，这部分是被CPU<br>自动压栈的，接下来是<code>iret</code>指令，又是一个很复杂的指令，它会把<code>int</code><br>自动压栈的内容再自动恢复回去，这样程序就回到eip处了，即中断发生的<br>指令处，一切就跟没有发生一样。</p>
+<p>可是系统调用，比如说read()，它的执行结果呢？</p>
+<figure class="highlight c"><figcaption><span>syscall.c</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">syscall</span><span class="params">(<span class="keyword">void</span>)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> num;</span><br><span class="line"></span><br><span class="line">  num = proc-&gt;tf-&gt;eax;</span><br><span class="line">  <span class="keyword">if</span>(num &gt; <span class="number">0</span> &amp;&amp; num &lt; NELEM(syscalls) &amp;&amp; syscalls[num]) &#123;</span><br><span class="line">    proc-&gt;tf-&gt;eax = syscalls[num](); <span class="comment">// 系统调用的执行结果</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    cprintf(<span class="string">"%d %s: unknown sys call %d\n"</span>,</span><br><span class="line">            proc-&gt;pid, proc-&gt;name, num);</span><br><span class="line">    proc-&gt;tf-&gt;eax = -<span class="number">1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>原来如此，系统调用的执行结果保存在通用寄存器里了。那系统调用的参数呢？比如说打开文件时<br>的“文件路径”参数，这是怎么传递的呢？答案在syscall.c里面，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">argint</span><span class="params">(<span class="keyword">int</span> n, <span class="keyword">int</span> *ip)</span></span><br><span class="line"></span>&#123;</span><br><span class="line">  <span class="comment">// proc-&gt;tf-&gt;esp增加一个ret addr的偏移量即为参数位置</span></span><br><span class="line">  <span class="keyword">return</span> fetchint(proc-&gt;tf-&gt;esp + <span class="number">4</span> + <span class="number">4</span>*n, ip);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>process在创建之初就设置p-&gt;tf属性了，这个指针指向内核栈的某个位置，见<code>allocproc()</code>函数，<br>系统调用的参数是通过读取用户栈传递的。</p>
+<p>整个系统调用至此完结。</p>
+<h3 id="疑问及解答">疑问及解答</h3><p>从scheduler()看来，每个CPU都会找RUNNABLE的进程执行，而一旦开始执行就会将进程状态设置为<br>RUNNING，于是其他CPU不可能再执行这个进程了，这样看来，一个进程<strong>同时</strong>只能被一个CPU执行！<br>当然，也有可能进程A被CPU0执行一段时间，然后不管是被中断还是时间片用完，还是自己主动yield，<br>它都会再次进入RUNNABLE状态，然后其他CPU可能发现并执行它，但是<strong>同一时刻</strong>，它只能在一个<br>CPU上执行。但是问题来了，一个进程在CPU0上被中断，然后还能在CPU1上被恢复吗？</p>
+<p>答：<br>这涉及到抢占式内核和非抢占式内核之分，如果进程在内核态执行时运行进程被更高优先级进程挂起，<br>那么kernel就是抢占式的，否则一个进程在进入kernel执行时不允许被中断，那么kernel就是非抢占式的。</p>
+<p>xv6是抢占式的内核，也就是说，当进程通过系统调用进入内核之后允许中断，当进程通过系统调用进入内核<br>正在运行，此时中断再次到达后，比如时钟中断，它会再次进入到alltraps，在这里push各种寄存器，<br>然后再次执行到trap，并主动yield()，这个过程其实类似于调用<code>int</code>指令，只是这是发生在内核中的<br>中断，CPU自动保存寄存器时不会保存ss, esp(trapframe最后两个变量)，这之后当前正在运行的进程<br>内核栈中就保存了一个trapframe，一个context，而trapret会return到新的进程继续执行，因为这期间<br>栈被切换了。等待这个进程被再次调度后会从它的context继续执行，而此次执行就不一定是以前的那个<br>CPU了。</p>
+<p>(over)</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/interrupt/" rel="tag">#interrupt</a>
+          
+            <a href="/tags/trap/" rel="tag">#trap</a>
+          
+            <a href="/tags/xv6/" rel="tag">#xv6</a>
+          
+            <a href="/tags/操作系统/" rel="tag">#操作系统</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/os/xv6-init-process/" rel="next" title="xv6代码阅读：init进程的启动">
+                <i class="fa fa-chevron-left"></i> xv6代码阅读：init进程的启动
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/os/xv6-process-and-scheduler/" rel="prev" title="xv6代码阅读：进程和进程调度">
+                xv6代码阅读：进程和进程调度 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+        
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/res/avatars/ducky.jpg" alt="iGNU" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">iGNU</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ybin" target="_blank">
+                  <i class="fa fa-github fa-fw"></i> github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/ybsolar" target="_blank">
+                  <i class="fa fa-twitter fa-fw"></i> twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/ignu" target="_blank">
+                  <i class="fa fa-weibo fa-fw"></i> weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#interrupt,_trap,_exception是什么"><span class="nav-number">1.</span> <span class="nav-text">interrupt, trap, exception是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#task_state_segment(TSS)是什么"><span class="nav-number">2.</span> <span class="nav-text">task state segment(TSS)是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#xv6是如何做的"><span class="nav-number">3.</span> <span class="nav-text">xv6是如何做的</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#从int_$T_SYSCALL开始"><span class="nav-number">3.0.1.</span> <span class="nav-text">从int $T_SYSCALL开始</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#中断处理程序"><span class="nav-number">3.0.2.</span> <span class="nav-text">中断处理程序</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#疑问及解答"><span class="nav-number">4.</span> <span class="nav-text">疑问及解答</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+      
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">iGNU</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    motionMiddleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+
+      isMobile() && FastClick.attach(document.body);
+
+      // Define Motion Sequence.
+      motionIntegrator
+        .add(motionMiddleWares.logo)
+        .add(motionMiddleWares.menu)
+        .add(motionMiddleWares.backToTop)
+        .add(motionMiddleWares.postList)
+        .add(motionMiddleWares.sidebar);
+
+      // Bootstrap Motion.
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

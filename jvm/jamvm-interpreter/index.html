@@ -1,0 +1,772 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='//fonts.lug.ustc.edu.cn/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+
+
+  <meta name="keywords" content="JVM,Jamvm," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iGNU's blog" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="JamVM的解释器实现，以及常见解释器实现方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JamVM的解释器">
+<meta property="og:url" content="http://ybin.gitcafe.io/jvm/jamvm-interpreter/index.html">
+<meta property="og:site_name" content="iGNU's blog">
+<meta property="og:description" content="JamVM的解释器实现，以及常见解释器实现方法。">
+<meta property="og:image" content="http://ybin.gitcafe.io/res/img/jamvm_dispatch_strategy.png">
+<meta property="og:image" content="http://ybin.gitcafe.io/res/img/jamvm_interpreter_header_file.png">
+<meta property="og:updated_time" content="2015-10-27T06:56:48.433Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JamVM的解释器">
+<meta name="twitter:description" content="JamVM的解释器实现，以及常见解释器实现方法。">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> JamVM的解释器 | iGNU's blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">iGNU's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu menu-left">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <form class="site-search-form">
+    <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+  </form>
+
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'd-CBG2sZDFQ4dxyLmzSk','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                JamVM的解释器
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2014-12-03T16:23:05+08:00" content="2014-12-03">
+              2014-12-03
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/jvm/" itemprop="url" rel="index">
+                    <span itemprop="name">jvm</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>JamVM的解释器实现，以及常见解释器实现方法。</p>
+<a id="more"></a>
+<h3 id="解释器的常见实现方案">解释器的常见实现方案</h3><p>什么是代码(code)？代码不过是指令和参数的集合。以Java字节码为例，所有指令都用一个<br>字节来表示，即一个指令就是一个0~255之间的整数，代码也可以看作是字节数组。</p>
+<p>解释器的工作非常简单：解释字节码并返回结果。<br>字节码一般都会有一个指令集，就像CPU的指令集一样，所以解释器会针对每一个指令创建一个<br>代码片段(code stub, handler)。执行的时候，解释器只需拿到指令，转到对应的代码片段执行并得到<br>结果，然后转到下一个指令，这个过程也叫做代码分发(code disptch)。</p>
+<p>解释器的设计就集中在两点：</p>
+<ul>
+<li>两个指令之间的转换</li>
+<li>字节码是逐条执行还是直接翻译为机器码(inline dispatch)</li>
+</ul>
+<p>针对指令之间的跳转方法，解释器有如下几种方案：</p>
+<ol>
+<li>使用一个无限循环以及一个switch完成跳转(switch-based dispatch)</li>
+<li>使用一个跳转表，将字节码指令翻译为实际代码片段地址(indirect dispatch)</li>
+<li>先将字节码指令翻译为代码片段地址，执行的时候直接跳转(direct dispatch)</li>
+</ol>
+<p>下面各个分发策略大量参考了这个<a href="http://realityforge.org/code/virtual-machines/2011/05/19/interpreters.html" target="_blank" rel="external">博文</a>，另外<a href="http://www.complang.tuwien.ac.at/forth/threaded-code.html" target="_blank" rel="external">这篇博文</a>也是非常好的讲解，并且它<br>还附带几种常见分发策略的<a href="http://www.complang.tuwien.ac.at/forth/threading/" target="_blank" rel="external">具体实现以及对比</a>。</p>
+<h4 id="基于switch的分发策略">基于switch的分发策略</h4><p>既然指令就是一个整数，我们就可以用一个大大的switch语句来分发指令了，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义指令集</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">enum</span> </span><br><span class="line">&#123;</span><br><span class="line">  const_1, add, ...</span><br><span class="line">&#125; <span class="keyword">instruction_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 程序代码由 指令+参数(如果有的话) 组成</span></span><br><span class="line"><span class="keyword">instruction_t</span> program[] = &#123;const_1, const_1, add, ...&#125;</span><br><span class="line"><span class="keyword">instruction_t</span> *ip = program;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 指令分发</span></span><br><span class="line"><span class="keyword">while</span>( <span class="number">1</span> )</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">switch</span> (*ip++) &#123;</span><br><span class="line">    <span class="keyword">case</span> const_1: &#123;  <span class="comment">/* Code to handle 'const_1' */</span>  &#125; <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> add:     &#123;  <span class="comment">/* Code to handle 'add' */</span>  &#125;     <span class="keyword">break</span>;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>好了，这就是一个简单的解释器的雏形，但是它有一个致命的缺点：CPU的分支预测功能被彻底去掉了。</p>
+<h4 id="直接跳转分发策略">直接跳转分发策略</h4><p>为了利用CPU的分支预测功能，我们引入直接跳转策略，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 注意这里的代码已经不再是 作为整数的指令了，所以需要提前把</span></span><br><span class="line"><span class="comment">// 整数指令码翻译为实际的代码片段的内存地址</span></span><br><span class="line"><span class="keyword">void</span> *program[] = &#123; &amp;&amp;I_const_1, &amp;&amp;I_const_1, &amp;&amp;I_add, <span class="comment">/* ... */</span> &#125;</span><br><span class="line"><span class="keyword">void</span> **ip = program;</span><br><span class="line"></span><br><span class="line"><span class="keyword">goto</span> **ip++;</span><br><span class="line"> </span><br><span class="line">I_const_1: &#123; <span class="comment">/* Code to handle 'const_1' */</span> &#125; <span class="keyword">goto</span> **ip++;</span><br><span class="line">I_add:     &#123; <span class="comment">/* Code to handle 'add' */</span> &#125;     <span class="keyword">goto</span> **ip++;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>直接跳转策略一个缺点就是它需要提前把指令码转换为handler的内存地址。</p>
+<h4 id="间接跳转分发策略">间接跳转分发策略</h4><p>正所谓</p>
+<blockquote>
+<p>任何问题都可以通过添加一个layer来解决。</p>
+</blockquote>
+<p>我们这里也是，通过增加一个跳转表，就可以不用跟直接跳转那样提前转换指令码了，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// lookup table, 跳转表</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *lut[] = &#123;&amp;&amp;I_const_1, &amp;&amp;I_add, <span class="comment">/*...*/</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 程序代码</span></span><br><span class="line"><span class="keyword">void</span> * program[] = &#123;lut, lut, lut + <span class="number">1</span>, <span class="comment">/*...*/</span>&#125;</span><br><span class="line"><span class="keyword">void</span> **ip = program;</span><br><span class="line"></span><br><span class="line"><span class="keyword">goto</span> ***(ip++);</span><br><span class="line"> </span><br><span class="line">I_const_1: &#123; <span class="comment">/* Code to handle 'const_1' */</span> &#125; <span class="keyword">goto</span> ***(ip++);</span><br><span class="line">I_add:     &#123; <span class="comment">/* Code to handle 'add' */</span> &#125;     <span class="keyword">goto</span> ***(ip++);</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="inline分发策略">inline分发策略</h4><p>inline策略大致思想是把字节码程序转换为机器码，然后直接执行机器码，这个不就是JIT吗？！</p>
+<h3 id="JamVM中的分发策略实现">JamVM中的分发策略实现</h3><p>JamVM支持switch-based策略、间接跳转策略、直接跳转策略以及Inline策略。这些策略通过<br>三个宏控制：<code>DIRECT</code>, <code>THREADED</code>, <code>INLINING</code>。</p>
+<p><img src="/res/img/jamvm_dispatch_strategy.png" alt="JamVM dispatch strategy"></p>
+<p>各种分发策略所在的头文件，</p>
+<p><img src="/res/img/jamvm_interpreter_header_file.png" alt="JamVM dispatch strategy"></p>
+<p>所有策略的代码实现均位于<code>src/interp/engine/interp.c</code>中，而这些实现基本都集中在<br><code>uintptr_t *executeJava();</code>函数中。该函数大量使用宏来生成代码，宏在不同的分发策略下<br>对应不同的代码生成方式，这样就可以通过这些宏来自由的切换分发策略。</p>
+<h4 id="executeJava()函数的结构">executeJava()函数的结构</h4><p>这个函数结构简单，但是代码复杂，其中掺杂大量宏代码，以期在各个分发策略之间灵活切换。<br>该函数结构如下：</p>
+<ol>
+<li>定义解释器，如indirect策略中定义跳转表</li>
+<li>准备解释器的执行环境如取得函数帧、操作数栈、局部变量表、常量池等资源</li>
+<li>创建代码分发器<ol>
+<li>开场，创建代码分发器头部，如switch-based策略下创建switch语句开头部分</li>
+<li>创建指令码handler，如switch-based策略下创建各个指令码对应的case语句</li>
+<li>结尾，结束代码分发器，如switch-based策略下结束switch语句以及结束函数</li>
+</ol>
+</li>
+</ol>
+<p>定义解释器和代码分发器的三个部分基本都是由宏构成的，只需根据分发策略来定义这些宏即可。</p>
+<h4 id="宏定义分析">宏定义分析</h4><p>direct策略没有non-threading的，所以开启direct策略的必须打开threading功能，而<br>non-threading的indirect策略也即switch-based策略是非常简单的，故宏定义直接分析<br>threading部分。</p>
+<p>什么是threading code？</p>
+<p>switch策略把每个指令孤立起来了，每个指令都从头来一遍，这对CPU的分支预测是极其<br>不利的，所以我们需求一种方式使得各个指令能够串联成一条线执行下去，这样的代码<br>就是threading code，即<strong>串联</strong>起来的代码，或者叫做<strong>代码串联</strong>。</p>
+<p>回到代码分发策略，要想把代码串联起来，indirect策略使用了一个跳转表，即每次执行完<br>一条指令之后，查找跳转表找到下一条指令的地址，然后跳转过去执行；而direct策略则是<br>在代码执行之前，首先把指令码转码成本地代码(即指令码对应的C代码)内存地址，然后执行，<br>从而省略了查表的过程，但是在转码的时候仍然需要一个跳转表。所以无论如何，只要打开<br>threading功能就需要一个跳转表，即threading的本质其实就是构建一个跳转表。这样，再<br>看看<code>interp-threading.h</code>的内容，它里面定义的宏其实就是做了一件事：构建跳转表。</p>
+<figure class="highlight c"><figcaption><span>handler table definition</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">define</span> TBL_NAME(level, label) handlers_##level##_##label</span></span><br><span class="line"></span><br><span class="line"><span class="preprocessor">#<span class="keyword">ifdef</span> JSR292</span></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">define</span> J(opcode, level, label) L(opcode, level, label)</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">else</span></span></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">define</span> J(opcode, level, label) &amp;&amp;unused</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="preprocessor">#<span class="keyword">define</span> DEF_HANDLER_TABLE(level, label)             \</span><br><span class="line">    HANDLER_TABLE_T *TBL_NAME(level, label)[] = &#123;   \</span><br><span class="line">        L(OPC_XXX,      level,  label),             \</span><br><span class="line">        <span class="comment">/* ... */</span>                                   \</span><br><span class="line">        X(OPC_XXX,      level,  label),             \</span><br><span class="line">        <span class="comment">/* ... */</span>                                   \</span><br><span class="line">        D(OPC_XXX,      level,  label),             \</span><br><span class="line">        <span class="comment">/* ... */</span>                                   \</span><br><span class="line">        I(OPC_XXX,      level,  label),             \</span><br><span class="line">        <span class="comment">/* ... */</span>                                   \</span><br><span class="line">        J(OPC_XXX,      level,  label),             \</span><br><span class="line">        <span class="comment">/* ... */</span>                                   \</span><br><span class="line">        unused,                                     \</span><br><span class="line">    &#125;</span></span><br></pre></td></tr></table></figure>
+<p>这就是跳转表的定义，其中的level用于代码缓存，而label用于inline策略，<br>如果不是inline策略且关闭代码缓存的话，level默认为0，label默认为ENTRY。<br>宏L、X、D、I、J用于特殊指令的支持与否，如支持JSR292那么使用J定义的<br>表项就有定义，否则就用unused来替代。</p>
+<p><code>interp-threading.h</code>把跳转表定义好了，但是表项里保存的是handler的地址，<br>那么handler要在哪里定义呢？当然是各个策略根据自己的需要定义handler，如<br>switch-based策略的handler其实是一些case语句，而其他支持threading的策略<br>则是一些形如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">opc_OPCODE_LEVEL_LABEL:</span><br><span class="line">    <span class="comment">// the real handler content</span></span><br><span class="line">unused:</span><br><span class="line">    <span class="comment">// do nothing...</span></span><br></pre></td></tr></table></figure>
+<p>这样的代码，这些代码同样是通过宏来定义，在<code>executeJava()</code>函数的“创建指令<br>handler”部分会调用这些指令，无论哪种策略，它们都有统一的格式：</p>
+<figure class="highlight c"><figcaption><span>handler definitions</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如indirect threading策略中的定义，interp-indirect.h，它的label只用到</span></span><br><span class="line"><span class="comment">// "ENTRY"，只有inline策略才会"START", "ENTRY", "END"全用</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">define</span> label(x, y, z)  \</span><br><span class="line">    opc##x##y##z:</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">define</span> DEF_OPC(opcode, level,  BODY)   \</span><br><span class="line">    label(opcode, level, ENTRY)         \</span><br><span class="line">        BODY</span></span><br><span class="line"><span class="comment">// 两个宏结合就会得到上面的handler的形式</span></span><br><span class="line"><span class="comment">// 另外，为了方便，可能有多个指令码的handler是一样的，于是还定义了这样的宏</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">define</span> DEF_OPC_2(op1, op2, level, BODY)    \</span><br><span class="line">    label(op1, level, ENTRY)</span></span><br><span class="line">    label(op2, level, ENTRY)</span><br><span class="line">        BODY</span><br><span class="line"><span class="preprocessor">#<span class="keyword">define</span> DEF_OPC_3(op1, op2, level, BODY)    \</span><br><span class="line">    label(op1, level, ENTRY)</span></span><br><span class="line">    label(op2, level, ENTRY)</span><br><span class="line">    label(op3, level, ENTRY)</span><br><span class="line">        BODY</span><br><span class="line"><span class="comment">// 以及为了方便cache打开后定义多级跳转表而定义的宏，</span></span><br><span class="line"><span class="comment">// _012_ 表示0,1,2三级跳转表，4表示4个opcode</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">define</span> DEF_OPC_012_4(op1, op2, op3, op4, BODY) \</span><br><span class="line">    label(op1, <span class="number">0</span>, ENTRY)                        \</span><br><span class="line">    label(op2, <span class="number">0</span>, ENTRY)                        \</span><br><span class="line">    label(op3, <span class="number">0</span>, ENTRY)                        \</span><br><span class="line">    label(op4, <span class="number">0</span>, ENTRY)                        \</span><br><span class="line">        cache.i.v1 = *--ostack;                 \</span><br><span class="line">                                                \</span><br><span class="line">    label(op1, <span class="number">1</span>, ENTRY)                        \</span><br><span class="line">    label(op2, <span class="number">1</span>, ENTRY)                        \</span><br><span class="line">    label(op3, <span class="number">1</span>, ENTRY)                        \</span><br><span class="line">    label(op4, <span class="number">1</span>, ENTRY)                        \</span><br><span class="line">        cache.i.v2 = cache.i.v1;                \</span><br><span class="line">        cache.i.v1 = *--ostack;                 \</span><br><span class="line">                                                \</span><br><span class="line">    label(op1, <span class="number">2</span>, ENTRY)                        \</span><br><span class="line">    label(op2, <span class="number">2</span>, ENTRY)                        \</span><br><span class="line">    label(op3, <span class="number">2</span>, ENTRY)                        \</span><br><span class="line">    label(op4, <span class="number">2</span>, ENTRY)                        \</span><br><span class="line">        BODY</span></span><br></pre></td></tr></table></figure>
+<p>好了，有了跳转表定义，在<code>executeJava()</code>函数的“定义跳转表”部分，只需使用宏定义跳转表即可，<br>而定义handler的宏也有了，在“创建指令码handler”部分使用这些宏即可定义handler。剩下的就是<br>代码分发器的“开场”和“结尾”的宏定义，这两部分相对简单，比如switch-base策略的开场只需如此，</p>
+<figure class="highlight c"><figcaption><span>switch-based strategy prologue</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">switch</span>(*pc++) &#123;</span><br></pre></td></tr></table></figure>
+<p>而结尾部分只是把两者闭合，</p>
+<figure class="highlight c"><figcaption><span>switch-base strategy epilogue</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">    &#125; <span class="comment">/* end of switch(*pc++) */</span></span><br><span class="line">&#125; <span class="comment">/* end of while(1) */</span></span><br></pre></td></tr></table></figure>
+<p>类似的，对于直接跳转和简介跳转，开场部分只是把<code>pc</code>设为method block的code部分，然后跳转到<br>那里，而结尾部分就是method return，以此来结束method的执行。</p>
+<h4 id="direct策略的转码部分">direct策略的转码部分</h4><h4 id="inline策略的代码翻译部分">inline策略的代码翻译部分</h4><p>(to be continued)</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JVM/" rel="tag">#JVM</a>
+          
+            <a href="/tags/Jamvm/" rel="tag">#Jamvm</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/tools/plantuml-tutorial/" rel="next" title="PlantUML示例">
+                <i class="fa fa-chevron-left"></i> PlantUML示例
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/programming/relations-of-classes-in-uml/" rel="prev" title="UML中类之间的关系：依赖, 关联, 聚合, 组合, 继承, 实现">
+                UML中类之间的关系：依赖, 关联, 聚合, 组合, 继承, 实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+        
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/res/avatars/ducky.jpg" alt="iGNU" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">iGNU</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ybin" target="_blank">
+                  <i class="fa fa-github fa-fw"></i> github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/ybsolar" target="_blank">
+                  <i class="fa fa-twitter fa-fw"></i> twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/ignu" target="_blank">
+                  <i class="fa fa-weibo fa-fw"></i> weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#解释器的常见实现方案"><span class="nav-number">1.</span> <span class="nav-text">解释器的常见实现方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基于switch的分发策略"><span class="nav-number">1.1.</span> <span class="nav-text">基于switch的分发策略</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#直接跳转分发策略"><span class="nav-number">1.2.</span> <span class="nav-text">直接跳转分发策略</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#间接跳转分发策略"><span class="nav-number">1.3.</span> <span class="nav-text">间接跳转分发策略</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#inline分发策略"><span class="nav-number">1.4.</span> <span class="nav-text">inline分发策略</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JamVM中的分发策略实现"><span class="nav-number">2.</span> <span class="nav-text">JamVM中的分发策略实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#executeJava()函数的结构"><span class="nav-number">2.1.</span> <span class="nav-text">executeJava()函数的结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#宏定义分析"><span class="nav-number">2.2.</span> <span class="nav-text">宏定义分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#direct策略的转码部分"><span class="nav-number">2.3.</span> <span class="nav-text">direct策略的转码部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#inline策略的代码翻译部分"><span class="nav-number">2.4.</span> <span class="nav-text">inline策略的代码翻译部分</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+      
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">iGNU</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    motionMiddleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+
+      isMobile() && FastClick.attach(document.body);
+
+      // Define Motion Sequence.
+      motionIntegrator
+        .add(motionMiddleWares.logo)
+        .add(motionMiddleWares.menu)
+        .add(motionMiddleWares.backToTop)
+        .add(motionMiddleWares.postList)
+        .add(motionMiddleWares.sidebar);
+
+      // Bootstrap Motion.
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
