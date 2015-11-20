@@ -4,7 +4,7 @@
   
   <link href="/atom.xml" rel="self"/>
   <link href="http://ybin.gitcafe.io/"/>
-  <updated>2015-11-19T06:53:08.685Z</updated>
+  <updated>2015-11-20T08:13:48.176Z</updated>
   <id>http://ybin.gitcafe.io/</id>
   
   <author>
@@ -13,6 +13,52 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[一张图理解Javascript的继承原理]]></title>
+    <link href="http://ybin.gitcafe.io/programming/javascript-inherits/"/>
+    <id>http://ybin.gitcafe.io/programming/javascript-inherits/</id>
+    <published>2015-11-20T07:28:14.000Z</published>
+    <updated>2015-11-20T08:13:48.176Z</updated>
+    <content type="html"><![CDATA[<p>图解Javascript基于原型的继承原理。</p>
+<a id="more"></a>
+<p><img src="/res/img/prototype.png" alt="Javascript Inherits"></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Cat</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> myCat = <span class="keyword">new</span> Cat();</span><br></pre></td></tr></table></figure>
+<h1 id="Javascript中的对象">Javascript中的对象</h1><ul>
+<li>在<code>javascript</code>中，一切皆对象</li>
+<li>对象分为三类(图中用三种颜色分别标记三种对象)：<ul>
+<li>函数对象</li>
+<li>原型对象</li>
+<li>实例对象</li>
+</ul>
+</li>
+<li>函数也用对象来表示，即函数对象</li>
+<li>原型对象为函数对象的<code>prototype</code>指向的对象</li>
+<li>实例对象是通过<code>new</code>操作和构造函数创建出来对象</li>
+</ul>
+<h1 id="对象之间的关系">对象之间的关系</h1><ul>
+<li>任何对象都有一个隐藏属性(在Google Chrome中用<code>__proto__</code>表示)指向该对象的父对象<ul>
+<li><code>Function.prototype</code>是所有函数对象的原型(1.1标记的箭头)</li>
+<li><code>Object.prototype</code>是所有原型对象的原型(1.2标记的箭头)</li>
+<li>函数对象对应的原型对象是其实例对象的原型(1.3标记的箭头)</li>
+</ul>
+</li>
+<li>任何函数对象都有一个<code>prototype</code>属性指向对应的原型对象，表示其实例对象的父对象(2标记的箭头)</li>
+<li>任何原型对象都有一个<code>constructor</code>属性指向对应的函数对象(3标记的箭头)</li>
+</ul>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>图解Javascript基于原型的继承原理。</p>]]>
+    
+    </summary>
+    
+      <category term="javascript" scheme="http://ybin.gitcafe.io/tags/javascript/"/>
+    
+      <category term="prototype" scheme="http://ybin.gitcafe.io/tags/prototype/"/>
+    
+      <category term="编程" scheme="http://ybin.gitcafe.io/categories/%E7%BC%96%E7%A8%8B/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[使用Nginx和PHP动态解析markdown文件]]></title>
@@ -821,29 +867,6 @@
       <category term="sequential" scheme="http://ybin.gitcafe.io/tags/sequential/"/>
     
       <category term="clojure" scheme="http://ybin.gitcafe.io/categories/clojure/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[android启动native进程]]></title>
-    <link href="http://ybin.gitcafe.io/android/android-start-new-process/"/>
-    <id>http://ybin.gitcafe.io/android/android-start-new-process/</id>
-    <published>2015-02-04T07:57:48.000Z</published>
-    <updated>2015-10-23T07:22:11.373Z</updated>
-    <content type="html"><![CDATA[<p>从APP启动native进程以及从native code发送intent。</p>
-<a id="more"></a>
-<h3 id="从APP启动native进程">从APP启动native进程</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    Process proc = Runtime.getRuntime().exec(<span class="string">"touch /storage/sdcard/xxx.txt"</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (IOException e1) &#123;</span><br><span class="line">    e1.printStackTrace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="从native_code发送intent">从native code发送intent</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> status = -<span class="number">1</span>;</span><br><span class="line">status = system(am broadcast -a com.example.DEMO_ACTION --user <span class="number">0</span><span class="string">");</span></span><br></pre></td></tr></table></figure>]]></content>
-    <summary type="html">
-    <![CDATA[<p>从APP启动native进程以及从native code发送intent。</p>]]>
-    
-    </summary>
-    
-      <category term="android" scheme="http://ybin.gitcafe.io/tags/android/"/>
-    
-      <category term="process" scheme="http://ybin.gitcafe.io/tags/process/"/>
-    
-      <category term="android" scheme="http://ybin.gitcafe.io/categories/android/"/>
     
   </entry>
   
