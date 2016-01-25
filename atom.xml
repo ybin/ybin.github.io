@@ -4,7 +4,7 @@
   
   <link href="/atom.xml" rel="self"/>
   <link href="http://ybin.gitcafe.io/"/>
-  <updated>2015-11-20T08:13:48.176Z</updated>
+  <updated>2016-01-25T11:12:16.390Z</updated>
   <id>http://ybin.gitcafe.io/</id>
   
   <author>
@@ -13,6 +13,96 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[Android开机自启动应用]]></title>
+    <link href="http://ybin.gitcafe.io/android/android-listen-broadcast-when-boot-completed/"/>
+    <id>http://ybin.gitcafe.io/android/android-listen-broadcast-when-boot-completed/</id>
+    <published>2016-01-25T11:00:52.000Z</published>
+    <updated>2016-01-25T11:12:16.390Z</updated>
+    <content type="html"><![CDATA[<p>Android开机自启动应用需要注意的一些坑。</p>
+<a id="more"></a>
+<p>开机自启动应用有些需要注意的地方，如果不注意很容易掉到坑里去。</p>
+<h1 id="权限">权限</h1><p>必须声明此权限<br><code>&lt;uses-permission android:name=&quot;android.permission.RECEIVE_BOOT_COMPLETED&quot; /&gt;</code></p>
+<h1 id="定义receiver">定义receiver</h1><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">receiver</span> <span class="attribute">android:name</span>=<span class="value">".BootReceiver"</span></span><br><span class="line">          <span class="attribute">android:enabled</span>=<span class="value">"true"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">action</span> <span class="attribute">android:name</span>=<span class="value">"android.intent.action.BOOT_COMPLETED"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">receiver</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>其中，<code>android:enable=&quot;true&quot;</code>这个属性必不可少。</p>
+<h1 id="必须手动启动">必须手动启动</h1><p>任何app安装之后都是处于”stopped”状态，此时，它是不会收到<code>BOOT_COMPLETED</code>消息的，<br>进入设置查看该app状态可以发现，<code>force stop</code>是不可用的，所以需要从Launcher启动该<br>app，之后它就不再是stopped状态，重启手机就可以收到<code>BOOT_COMPLETED</code>消息了。</p>
+<p>(over)</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>Android开机自启动应用需要注意的一些坑。</p>]]>
+    
+    </summary>
+    
+      <category term="android" scheme="http://ybin.gitcafe.io/tags/android/"/>
+    
+      <category term="boot" scheme="http://ybin.gitcafe.io/tags/boot/"/>
+    
+      <category term="broadcast" scheme="http://ybin.gitcafe.io/tags/broadcast/"/>
+    
+      <category term="android" scheme="http://ybin.gitcafe.io/categories/android/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[56行代码理解RxJava]]></title>
+    <link href="http://ybin.gitcafe.io/programming/rxjava-in-56-lines/"/>
+    <id>http://ybin.gitcafe.io/programming/rxjava-in-56-lines/</id>
+    <published>2015-12-15T06:30:35.000Z</published>
+    <updated>2015-12-15T08:55:31.820Z</updated>
+    <content type="html"><![CDATA[<p>自己动手实现RxJava。</p>
+<a id="more"></a>
+<h1 id="最简单的观察者模式">最简单的观察者模式</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Data</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Subscriber</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onEvent</span><span class="params">(Data d)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Observable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Subscriber subscriber;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">register</span><span class="params">(Subscriber s)</span> </span>&#123;</span><br><span class="line">        subscriber = s;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">onEvent</span><span class="params">(Data d)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(subscriber != <span class="keyword">null</span>) &#123;</span><br><span class="line">            subscriber.onEvent(d);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="多级观察者">多级观察者</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">InterSubscriber</span> <span class="keyword">implements</span> <span class="title">Subscriber</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Subscriber subscriber;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> InterSubscriber <span class="title">register</span><span class="params">(Subscriber s)</span> </span>&#123;</span><br><span class="line">        subscriber = s;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="annotation">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onEvent</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 1. do something</span></span><br><span class="line">        <span class="comment">// 2. tell subscriber</span></span><br><span class="line">        <span class="keyword">if</span>(subscriber != <span class="keyword">null</span>) &#123;</span><br><span class="line">                subscriber.onEvent();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Observable o = <span class="keyword">new</span> Observable();</span><br><span class="line">InterSubscriber is0 = <span class="keyword">new</span> InterSubscriber();</span><br><span class="line">InterSubscriber is1 = <span class="keyword">new</span> InterSubscriber();</span><br><span class="line">Subscriber s = <span class="keyword">new</span> Subscriber();</span><br><span class="line"></span><br><span class="line">o.register(is0);</span><br><span class="line">is0.register(is1);</span><br><span class="line">is1.register(s);</span><br><span class="line">o.onEvent();</span><br></pre></td></tr></table></figure>
+<p>数据处理流程： <code>o.onEvent() -&gt; is0.onEvent() -&gt; is1.onEvent() -&gt; s.onEvent</code></p>
+<h1 id="中间观察者的另一面是被观察者">中间观察者的另一面是<strong>被观察者</strong></h1><p>被观察者的行为可以总结为：</p>
+<blockquote>
+<p>产生事件，事件</p>
+</blockquote>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>自己动手实现RxJava。</p>]]>
+    
+    </summary>
+    
+      <category term="rxjava" scheme="http://ybin.gitcafe.io/tags/rxjava/"/>
+    
+      <category term="编程" scheme="http://ybin.gitcafe.io/categories/%E7%BC%96%E7%A8%8B/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Android am命令]]></title>
+    <link href="http://ybin.gitcafe.io/android/android-am-command/"/>
+    <id>http://ybin.gitcafe.io/android/android-am-command/</id>
+    <published>2015-12-02T06:42:13.000Z</published>
+    <updated>2016-01-25T10:58:14.997Z</updated>
+    <content type="html"><![CDATA[<p><code>adb shell am</code>的用法。</p>
+<a id="more"></a>
+<p><code>am(activity manager)</code>命令是android增加的一个linux shell command，<br>该命令用于才命令行操作activity manager，相关的命令还有<code>pm(package manager)</code>，<br><code>wm(window manager)</code>等。</p>
+<h1 id="Usage">Usage</h1><p><code>usage: am [subcommand] [options]</code></p>
+<h2 id="subcommand:_start,_startservice,_broadcast">subcommand: start, startservice, broadcast</h2><p>用法： <code>am [start|startservice|broadcast] [options] &lt;intent&gt;</code></p>
+<ul>
+<li>start: 启动一个activity，如<code>adb shell am start http://www.baidu.com</code></li>
+<li>startservice: 启动一个service</li>
+<li>broadcast: 发送一个broadcast</li>
+</ul>
+<p><code>&lt;intent&gt;</code>的形式如下：</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">&lt;INTENT&gt; specifications <span class="built_in">include</span> these flags <span class="operator">and</span> arguments:</span><br><span class="line">    [-<span class="operator">a</span> &lt;ACTION&gt;]       <span class="comment"># 定义action</span></span><br><span class="line">    [-d &lt;DATA_URI&gt;]     <span class="comment"># 定义data uri</span></span><br><span class="line">    [-t &lt;MIME_TYPE&gt;]    <span class="comment"># 定义多媒体类型</span></span><br><span class="line">    [-c &lt;CATEGORY&gt; [-c &lt;CATEGORY&gt;] ...]                 <span class="comment"># 定义category</span></span><br><span class="line">    [-e|<span class="comment">--es &lt;EXTRA_KEY&gt; &lt;EXTRA_STRING_VALUE&gt; ...]      # 增加String类型的extra信息</span></span><br><span class="line">    [<span class="comment">--esn &lt;EXTRA_KEY&gt; ...]                             # 增加extra key</span></span><br><span class="line">    [<span class="comment">--ez &lt;EXTRA_KEY&gt; &lt;EXTRA_BOOLEAN_VALUE&gt; ...]        # 增加boolean类型的extra信息</span></span><br><span class="line">    [<span class="comment">--ei &lt;EXTRA_KEY&gt; &lt;EXTRA_INT_VALUE&gt; ...]            # 增加int类型的extra信息</span></span><br><span class="line">    [<span class="comment">--el &lt;EXTRA_KEY&gt; &lt;EXTRA_LONG_VALUE&gt; ...]           # 增加long类型的extra信息</span></span><br><span class="line">    [<span class="comment">--ef &lt;EXTRA_KEY&gt; &lt;EXTRA_FLOAT_VALUE&gt; ...]          # 增加float类型的extra信息</span></span><br><span class="line">    [<span class="comment">--eu &lt;EXTRA_KEY&gt; &lt;EXTRA_URI_VALUE&gt; ...]            # 增加extra URI</span></span><br><span class="line">    [<span class="comment">--ecn &lt;EXTRA_KEY&gt; &lt;EXTRA_COMPONENT_NAME_VALUE&gt;]    # 增加extra comonent</span></span><br><span class="line">    [<span class="comment">--eia &lt;EXTRA_KEY&gt; &lt;EXTRA_INT_VALUE&gt;[,&lt;EXTRA_INT_VALUE...]]         # 批量增加int类型的extra信息</span></span><br><span class="line">    [<span class="comment">--ela &lt;EXTRA_KEY&gt; &lt;EXTRA_LONG_VALUE&gt;[,&lt;EXTRA_LONG_VALUE...]]       # 批量增加long类型的extra信息</span></span><br><span class="line">    [<span class="comment">--efa &lt;EXTRA_KEY&gt; &lt;EXTRA_FLOAT_VALUE&gt;[,&lt;EXTRA_FLOAT_VALUE...]]     # 批量增加float类型的extra信息</span></span><br><span class="line">    [<span class="comment">--esa &lt;EXTRA_KEY&gt; &lt;EXTRA_STRING_VALUE&gt;[,&lt;EXTRA_STRING_VALUE...]]   # 批量增加String类型的extra信息</span></span><br><span class="line">        (<span class="built_in">to</span> embed <span class="operator">a</span> <span class="constant">comma</span> <span class="keyword">into</span> <span class="operator">a</span> <span class="keyword">string</span> escape <span class="keyword">it</span> <span class="keyword">using</span> <span class="string">"\,"</span>)           <span class="comment"># 如果字符串中包含逗号，需要用"\,"进行转义</span></span><br><span class="line">    [-n &lt;COMPONENT&gt;]    <span class="comment"># 定义component信息</span></span><br><span class="line">    [-p &lt;PACKAGE&gt;]      <span class="comment"># 定义package信息</span></span><br><span class="line">    [-f &lt;FLAGS&gt;]        <span class="comment"># flags信息</span></span><br><span class="line">    [<span class="comment">--grant-read-uri-permission]           # 增加权限</span></span><br><span class="line">    [<span class="comment">--grant-write-uri-permission]          # 增加权限</span></span><br><span class="line">    [<span class="comment">--grant-persistable-uri-permission]    # 增加权限</span></span><br><span class="line">    [<span class="comment">--grant-prefix-uri-permission]         # 增加权限</span></span><br><span class="line">    [<span class="comment">--debug-log-resolution]</span></span><br><span class="line">    [<span class="comment">--exclude-stopped-packages]            # 排除stop状态的packages，系统默认</span></span><br><span class="line">    [<span class="comment">--include-stopped-packages]            # 包括stop状态的packages，默认intent不包括stop状态的packages</span></span><br><span class="line">    [<span class="comment">--activity-brought-to-front]</span></span><br><span class="line">    [<span class="comment">--activity-clear-top]</span></span><br><span class="line">    [<span class="comment">--activity-clear-when-task-reset]</span></span><br><span class="line">    [<span class="comment">--activity-exclude-from-recents]</span></span><br><span class="line">    [<span class="comment">--activity-launched-from-history]</span></span><br><span class="line">    [<span class="comment">--activity-multiple-task]</span></span><br><span class="line">    [<span class="comment">--activity-no-animation]</span></span><br><span class="line">    [<span class="comment">--activity-no-history]</span></span><br><span class="line">    [<span class="comment">--activity-no-user-action]</span></span><br><span class="line">    [<span class="comment">--activity-previous-is-top]</span></span><br><span class="line">    [<span class="comment">--activity-reorder-to-front]</span></span><br><span class="line">    [<span class="comment">--activity-reset-task-if-needed]</span></span><br><span class="line">    [<span class="comment">--activity-single-top]</span></span><br><span class="line">    [<span class="comment">--activity-clear-task]</span></span><br><span class="line">    [<span class="comment">--activity-task-on-home]</span></span><br><span class="line">    [<span class="comment">--receiver-registered-only]</span></span><br><span class="line">    [<span class="comment">--receiver-replace-pending]</span></span><br><span class="line">    [<span class="comment">--selector]</span></span><br><span class="line">    [&lt;URI&gt; | &lt;PACKAGE&gt; | &lt;COMPONENT&gt;]</span><br></pre></td></tr></table></figure>
+<p>(待续)</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p><code>adb shell am</code>的用法。</p>]]>
+    
+    </summary>
+    
+      <category term="am" scheme="http://ybin.gitcafe.io/tags/am/"/>
+    
+      <category term="android" scheme="http://ybin.gitcafe.io/tags/android/"/>
+    
+      <category term="android" scheme="http://ybin.gitcafe.io/categories/android/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[一张图理解Javascript的继承原理]]></title>
@@ -731,142 +821,6 @@
       <category term="plugin" scheme="http://ybin.gitcafe.io/tags/plugin/"/>
     
       <category term="gradle" scheme="http://ybin.gitcafe.io/categories/gradle/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[clojure模块引用]]></title>
-    <link href="http://ybin.gitcafe.io/clojure/clojure-module-reference/"/>
-    <id>http://ybin.gitcafe.io/clojure/clojure-module-reference/</id>
-    <published>2015-02-12T08:42:59.000Z</published>
-    <updated>2015-10-23T07:21:37.044Z</updated>
-    <content type="html"><![CDATA[<p>clojure模块引用。</p>
-<a id="more"></a>
-<h3 id="格式说明">格式说明</h3><p>函数语法：<code>(require (quote &lt;prefix list&gt;|&lt;libspec&gt;)+ &lt;optional flag&gt;*)</code><br><code>ns</code>格式： <code>&#39;(:require [&lt;prefix list&gt;|&lt;libspec&gt;]+ &lt;optional flag&gt;*)</code></p>
-<p><code>+</code>表示一个或者多个，<code>*</code>表示零个或者多个。<code>use</code>跟<code>require</code>是一样的，<br>他们两个只是在<libspec>的参数中有区别。<code>:use</code>, <code>:require</code>最终都会调用<code>load-libs</code>函数。</libspec></p>
-<p>注意：prefix list是list(一般如此，但是并没有强制)，而libspec是symbol或者vector。</p>
-<h5 id="libspec">libspec</h5><p>libspec指定一个lib的信息，包括lib name以及其他可选的选项，其格式如下：</p>
-<ul>
-<li>一个全限定lib name(symbol)，如<code>&#39;clojure.string</code>、<code>&#39;clojure.set</code>等</li>
-<li>一个vector：<code>[&lt;lib name&gt; &lt;optional options&gt;]</code>，如果libspec放在prefix list中，则<lib name="">不能包含点号(<code>.</code>)。</lib></li>
-</ul>
-<p>如<code>[string :as str :refer [trim replace]]</code>、<code>[set :as s]</code>、<code>[clojure.string]</code>(不能放到prefix list里面)，<br>libspec支持的参数包括，</p>
-<ol>
-<li><code>:as</code>，即alias</li>
-<li><code>:refer</code>，加载模块，并将函数引入当前命名空间</li>
-</ol>
-<p>如果是<code>use</code>的话还支持<code>refer</code>函数的参数，<code>use</code>自动将模块中的函数引入当前namespace，<br>即<code>use = require + refer</code>，</p>
-<ol>
-<li><code>:exclude</code></li>
-<li><code>:only</code></li>
-<li><code>:rename</code></li>
-</ol>
-<p><code>use</code>的<code>:only</code>, <code>:exclude</code>, <code>rename</code>和<code>require</code>的<code>:refer</code>都是<code>clojure.core/refer</code>函数的参数。</p>
-<h5 id="prefix_list">prefix list</h5><p>prefix list是一个list，它的格式是这样的： <code>&#39;(&lt;prefix&gt; &lt;libspec&gt;+)</code>，<br>其中<prefix>指的是一个或多个lib路径的公共部分，如<code>clojure.string</code>和<code>clojure.set</code>他们的公共部分<br>为<code>clojure</code>，注意，此时libspec里的lib name不能包含点号(<code>.</code>)。<br>例如：<code>(clojure [set :as s] [string :as str :refer [trim replace]] walk)</code></prefix></p>
-<p>注意，1.7版本有一个bug，即prefix list允许没有libspec，如<code>(require &#39;(clojure.set))</code>，这个表达式<br>可以正常运行，但是模块并没有被加载。</p>
-<h5 id="flag">flag</h5><p>flag包括：<code>:reload</code>，<code>:reload-all</code>，<code>:verbose</code>，这些flag是针对<code>require</code>、<code>use</code>的，<br>不是针对prefix list的，也不是针对libspec的，这一点儿一定要注意。</p>
-<ol>
-<li><code>:reload</code>，即使已经加载过模块也仍然再次加载，</li>
-<li><code>:reload-all</code>，除了包含<code>:reload</code>的行为之外，被加载的模块直接或者间接使用的模块也会重新加载，</li>
-<li><code>:verbose</code>，显示加载信息</li>
-</ol>
-<p>例如：<code>(require &#39;(clojure [string :as str] set) :reload-all)</code></p>
-<h3 id="示例">示例</h3><figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="list">(<span class="keyword">require</span> '<span class="list">(<span class="keyword">clojure</span> set string)</span></span><br><span class="line">         '<span class="list">(<span class="keyword">clojure</span> <span class="collection">[zip <span class="attribute">:as</span> z]</span> <span class="collection">[template <span class="attribute">:as</span> t]</span>)</span></span><br><span class="line">         'clojure.pprint)</span></span><br></pre></td></tr></table></figure>
-<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="list">(<span class="keyword"><span class="built_in">ns</span></span> foo.bar</span><br><span class="line">  <span class="list">(<span class="attribute">:require</span> <span class="list">(<span class="keyword">clojure</span> set string)</span></span><br><span class="line">            <span class="list">(<span class="keyword">clojure</span> <span class="collection">[zip <span class="attribute">:as</span> z]</span> <span class="collection">[template <span class="attribute">:as</span> t]</span>)</span></span><br><span class="line">            clojure.pprint)</span>)</span></span><br></pre></td></tr></table></figure>
-<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="list">(<span class="keyword"><span class="built_in">use</span></span> '<span class="list">(<span class="keyword">clojure</span> <span class="list">(<span class="keyword">string</span> <span class="attribute">:only</span> <span class="list">(<span class="keyword">trim</span> replace)</span>)</span> set)</span></span><br><span class="line">     'clojure.walk)</span></span><br></pre></td></tr></table></figure>
-<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="list">(<span class="keyword"><span class="built_in">ns</span></span> foo.bar</span><br><span class="line">    <span class="list">(<span class="attribute">:use</span> <span class="list">(<span class="keyword">clojure</span> <span class="list">(<span class="keyword">string</span> <span class="attribute">:only</span> <span class="list">(<span class="keyword">trim</span> replace)</span>)</span></span><br><span class="line">                   set)</span></span><br><span class="line">           clojure.walk)</span>)</span></span><br></pre></td></tr></table></figure>
-<h3 id="Import_Java_modules">Import Java modules</h3><p>用<code>import</code>宏引入Java类作为clojure模块。</p>
-<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="list">(<span class="keyword"><span class="built_in">import</span></span> '<span class="list">(<span class="keyword">java.util</span> Date Calendar)</span></span><br><span class="line">        'java.net.URI)</span></span><br></pre></td></tr></table></figure>
-<p>参数为Java类的全路径名，如果要引入同一个package中的多个类，则可以使用简略形式：<br><code>&#39;(package C1 C2 C3)</code>，这样就一次性引入这个package中的多个类了。</p>
-<p>对应的<code>ns</code>参数格式为，</p>
-<figure class="highlight clojure"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="list">(<span class="keyword"><span class="built_in">ns</span></span> foo.bar</span><br><span class="line">    <span class="list">(<span class="attribute">:import</span> <span class="list">(<span class="keyword">java.util</span> Date Calendar)</span></span><br><span class="line">              java.net.URI)</span>)</span></span><br></pre></td></tr></table></figure>
-<p>(over)</p>
-]]></content>
-    <summary type="html">
-    <![CDATA[<p>clojure模块引用。</p>]]>
-    
-    </summary>
-    
-      <category term="clojure" scheme="http://ybin.gitcafe.io/tags/clojure/"/>
-    
-      <category term="module" scheme="http://ybin.gitcafe.io/tags/module/"/>
-    
-      <category term="clojure" scheme="http://ybin.gitcafe.io/categories/clojure/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[IntelliJ Idea快捷键]]></title>
-    <link href="http://ybin.gitcafe.io/tools/intellij-idea-shortcut-list/"/>
-    <id>http://ybin.gitcafe.io/tools/intellij-idea-shortcut-list/</id>
-    <published>2015-02-06T08:42:14.000Z</published>
-    <updated>2015-10-23T07:21:01.794Z</updated>
-    <content type="html"><![CDATA[<p>IntelliJ Idea快捷键记录。</p>
-<a id="more"></a>
-<h1 id="IntelliJ_Idea_shortcuts">IntelliJ Idea shortcuts</h1><h2 id="General">General</h2><p>Ctrl + Tab<br>    Switch between tabs and tool window<br>    注：按下Ctrl + Tab会弹出Popup，然后使用方向键进行选择，松开Ctrl + Tab进行跳转。<br>        如果只是想切换Tab而非tool window，则可用Alt + Left/Right<br>Ctrl + Shift + A<br>    Find Action</p>
-<h2 id="Search/Replace">Search/Replace</h2><p>Ctrl + F<br>    Find<br>Ctrl + Shift + F<br>    Find in path<br>    注：在整个project/module/directory里面搜索，”Replace in path”类似。<br>Ctrl + R<br>    Replace<br>Ctrl + Shift + R<br>    Replace in path<br>Alt + F7<br>    Find usages<br>Ctrl + F7<br>    Find usages in file<br>Ctrl + Shift + F7<br>    Highlight usages in file<br>Ctrl + Alt + F7<br>    Show usages</p>
-<h2 id="Refactoring">Refactoring</h2><p>F5<br>    Copy<br>    注：复制当前类到一个新类，或者作为另一个类的内部类等，有对话框可选择。<br>F6  Move<br>    注：移动当前类到一个新类。<br>Alt + Delete<br>    Safe Delete<br>Shift + F6<br>    Rename<br>    注：不解释！<br>Ctrl + F6<br>    Change Signature<br>Ctrl + Alt + N<br>    Inline<br>Ctrl + Alt + M<br>    Extract Method<br>    注：提取代码块作为一个方法<br>Ctrl + Alt + V<br>    Extract Variable<br>    注：提取代码块作为一个变量<br>Ctrl + Alt + F<br>    Extract Field<br>    注：提取代码块作为一个属性<br>Ctrl + Alt + C<br>    Extract Constant<br>    注：提取代码块作为一个常量<br>Ctrl + Alt + P<br>    Extract Parameter<br>    注：提取代码块作为一个参数</p>
-<h2 id="Navigation">Navigation</h2><p>Ctrl + N<br>    Go to class<br>Ctrl + Shift + N<br>    Go to file<br>Ctrl + Alt + Shift + N<br>    Go to symbol<br>    注：不论是类名、文件名、方法、属性，统统能看得到。<br>Alt + Right/Left<br>    Go to next/previous editor tab<br>Ctrl + G<br>    Go to line<br>Ctrl + E<br>    Recent files popup<br>Ctrl + Alt + Left/Right<br>    Navigate back/forward<br>    注：前进、后退，相当于工具栏上的前进后退箭头，go to declaration之后，<br>        也是用这个返回。<br>Ctrl + Shift + Backspace<br>    Navigate to last edit location<br>Ctrl + B or Ctrl + Click<br>    Go to declaration<br>Ctrl + Alt + B<br>    Go to implementation(s)<br>Ctrl + U<br>    Go to super-method/super-class<br>    注：看父类的方法定义时很方便。<br>Alt + Up/Down<br>    Go to previous/next method<br>    注：在方法间跳转，浏览代码很方便。<br>Ctrl + 左方括号/右方括号<br>    Move to code block end/start<br>Ctrl + F12<br>    File structure popup<br>    注：Ctrl+F12，然后输入方法、属性名称便可快速定位过去，模拟Eclipse里面的<br>        Ctrl+O的功能。<br>Ctrl + H<br>    Type hierarchy<br>Ctrl + Shift + H<br>    Method hierarchy<br>Ctrl + Alt + H<br>    Call hierarchy<br>    注：这个太重要了，直接查看调用结构。</p>
-<p>F2 / Shift + F2<br>    Next/previous highlighted error<br>    注：解决error时可以快速定位。<br>F4 / Ctrl + Enter<br>    Edit source / View source</p>
-<h2 id="Editing">Editing</h2><p>Ctrl + Space<br>    Basic code completion(the name of any class, method or variable)<br>    注：跟输入法冲突，一般用Alt+/替代，原来的Cyclic Expand Word(Alt+/)置空。<br>Ctrl + Shift + Space<br>    Smart code completion(filters the list of methods and variables by expected type)<br>Ctrl + P<br>    Parameter info(within method call arguments)<br>Ctrl + X<br>    Cut current line or selected block to clipboard<br>Ctrl +Ｙ<br>    Delete line at caret<br>    注：选中多行时，所有涉及到selected block的行均被删掉</p>
-<p>Ctrl + Q<br>    Quick documentation lookup<br>    注：显示文档内容<br>Shift + F1<br>    External Doc<br>Alt + Insert<br>    Generate code… (Getters, Setters, Constructors, hashCode/equals, toString)<br>    注：快速生成代码。<br>Ctrl + O<br>    Override methods<br>Ctrl + I<br>    Implement methods<br>Ctrl + Alt + T<br>    Surround with… (if..else, try..catch, for, synchronized, etc.)<br>    注：快速插入代码。<br>Ctrl + /<br>    Comment/uncomment with line comment<br>Ctrl + Shift + /<br>    Comment/uncomment with block comment<br>Ctrl + W<br>    Select successively increasing code blocks<br>    注：循序渐进的选中，很有用。<br>Alt + Q<br>    Context info<br>    注：如显示当前所在的类信息。<br>Ctrl + Alt + L<br>    Reformat code<br>    注：可以reformat选中的代码、整个文件。<br>Ctrl + Alt + O<br>    Optimize imports<br>    注：重排import代码<br>Ctrl + Alt + I<br>    Auto-indent line(s)<br>    注：自动缩进选中的代码。<br>Tab / Shift + Tab<br>    Indent/unindent selected lines<br>Ctrl + X or Shift + Delete<br>    Cut current line or selected block to clipboard<br>    注：剪切，不仅是删除，Ctrl + Y才是删除。<br>Ctrl + D<br>    Duplicate current line or selected block<br>Ctrl + Shift + J<br>    Smart line join<br>    注：合并当前行和下一行<br>Alt + Enter<br>    Show intention actions and quick-fixes<br>    注：显示推荐的修改方案<br>Ctrl + Enter<br>    Smart line split<br>Shift + Enter<br>    Start new line<br>Ctrl + Shift + Enter<br>    Complete statement<br>    注：如自动插入分号<br>Ctrl + Shift + U<br>    Toggle case for word at caret or selected block<br>    注：大小写切换</p>
-]]></content>
-    <summary type="html">
-    <![CDATA[<p>IntelliJ Idea快捷键记录。</p>]]>
-    
-    </summary>
-    
-      <category term="intellij" scheme="http://ybin.gitcafe.io/tags/intellij/"/>
-    
-      <category term="java" scheme="http://ybin.gitcafe.io/tags/java/"/>
-    
-      <category term="工具" scheme="http://ybin.gitcafe.io/tags/%E5%B7%A5%E5%85%B7/"/>
-    
-      <category term="工具" scheme="http://ybin.gitcafe.io/categories/%E5%B7%A5%E5%85%B7/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[clojure术语之：sequence, seq, sequential and persistent collections]]></title>
-    <link href="http://ybin.gitcafe.io/clojure/clojure-sequence-seq-and-sequential/"/>
-    <id>http://ybin.gitcafe.io/clojure/clojure-sequence-seq-and-sequential/</id>
-    <published>2015-02-05T01:32:32.000Z</published>
-    <updated>2015-10-23T07:21:33.935Z</updated>
-    <content type="html"><![CDATA[<p>clojure中的sequence, seq, sequential以及persistent collections之间的关系。</p>
-<a id="more"></a>
-<p>clojure提供了一些内置的组合数据类型(composite data type，也叫clojure collections)，<br>如list, vector, map, set，它们是与数字、字符串等简单数据类型相对的。</p>
-<h3 id="sequential">sequential</h3><p>clojure collection(区别于java collection)根据<strong>是否保持次序</strong>又分为两类:</p>
-<ol>
-<li>sequential</li>
-<li>not sequential</li>
-</ol>
-<p>什么叫做<strong>是否保持次序</strong>呢？保持次序意味着增加或删除元素之后，原来的元素保持次序<br>不变，如一个vector: <code>[1 2 3 4 5]</code>，现在删除<code>4</code>，则剩下的一定是<code>[1 2 3 5]</code>，剩下<br>的元素仍然保持原有的次序，相比之下一个set: <code>#{1 2 3 4 4}</code>，它有一定的顺序，只是<br>这个顺序是clojure内部使用的，用户不应该基于这个次序来操作，现在删除<code>4</code>，则剩下的<br>元素无法保证其次序不会改变。</p>
-<p>Sequential是一个dumy interface，它没有任何method，只是实现该接口的对象必须在实现<br>时自己保证元素次序。</p>
-<h3 id="seq">seq</h3><p>java collection有好几种，map, set, list，他们各自都有自己独特的操作方法，其他语言<br>如python也是如此，其list, turple等都有自己独特的操作方法。那么clojure呢，clojure<br>collection也有好几种：list, vector, map, set，它们是不是也要各自搞出一套操作方法<br>来呢，非也！</p>
-<p>clojure为所有的clojure collection提供一套统一的操作方法，即ISeq，也就是说任何collection<br>都可以转换为ISeq对象，这是通过Seqable接口保证的，</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Seqable</span> </span>&#123;</span><br><span class="line">    <span class="function">ISeq <span class="title">seq</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IPersistentCollection</span> <span class="keyword">extends</span> <span class="title">Seqable</span> </span>&#123;</span><br><span class="line">    <span class="comment">/* ... */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>ISeq为collection提供了另一个<strong>视角</strong>，于是调用任何collection对象的<code>seq()</code>接口就会<br>得到一个ISeq对象，然后就可以操作这个ISeq对象来操作collection。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ISeq</span> <span class="keyword">extends</span> <span class="title">IPersistentCollection</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function">Object <span class="title">first</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">ISeq <span class="title">next</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">ISeq <span class="title">more</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">ISeq <span class="title">cons</span><span class="params">(Object o)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这样看来<code>seq</code>是一个接口，其实它还是一个函数，clojure提供一个<code>seq</code>函数，它将任何collection<br>以及其他一些对象(如String)转换为ISeq对象。</p>
-<h3 id="sequence">sequence</h3><p>ISeq对象就叫做sequence，有了seq接口和seq函数的支持，我们只需操作sequence就可以了，于是clojure<br>提供一套强大的函数库，叫做sequence函数库，来实现对sequence的各种操作，<code>map</code>, <code>reduce</code>, <code>filter</code><br>等等，所有的clojure collection都可以通过这个函数库来进行操作。</p>
-<p>(over)</p>
-]]></content>
-    <summary type="html">
-    <![CDATA[<p>clojure中的sequence, seq, sequential以及persistent collections之间的关系。</p>]]>
-    
-    </summary>
-    
-      <category term="clojure" scheme="http://ybin.gitcafe.io/tags/clojure/"/>
-    
-      <category term="collection" scheme="http://ybin.gitcafe.io/tags/collection/"/>
-    
-      <category term="seq" scheme="http://ybin.gitcafe.io/tags/seq/"/>
-    
-      <category term="sequence" scheme="http://ybin.gitcafe.io/tags/sequence/"/>
-    
-      <category term="sequential" scheme="http://ybin.gitcafe.io/tags/sequential/"/>
-    
-      <category term="clojure" scheme="http://ybin.gitcafe.io/categories/clojure/"/>
     
   </entry>
   

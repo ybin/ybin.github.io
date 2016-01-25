@@ -1,0 +1,721 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='//fonts.lug.ustc.edu.cn/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+
+
+  <meta name="keywords" content="am,android," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iGNU's blog" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="adb shell am的用法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android am命令">
+<meta property="og:url" content="http://ybin.gitcafe.io/android/android-am-command/index.html">
+<meta property="og:site_name" content="iGNU's blog">
+<meta property="og:description" content="adb shell am的用法。">
+<meta property="og:updated_time" content="2016-01-25T10:58:14.997Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android am命令">
+<meta name="twitter:description" content="adb shell am的用法。">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> Android am命令 | iGNU's blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">iGNU's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu menu-left">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <form class="site-search-form">
+    <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+  </form>
+
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'd-CBG2sZDFQ4dxyLmzSk','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Android am命令
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2015-12-02T14:42:13+08:00" content="2015-12-02">
+              2015-12-02
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/android/" itemprop="url" rel="index">
+                    <span itemprop="name">android</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p><code>adb shell am</code>的用法。</p>
+<a id="more"></a>
+<p><code>am(activity manager)</code>命令是android增加的一个linux shell command，<br>该命令用于才命令行操作activity manager，相关的命令还有<code>pm(package manager)</code>，<br><code>wm(window manager)</code>等。</p>
+<h1 id="Usage">Usage</h1><p><code>usage: am [subcommand] [options]</code></p>
+<h2 id="subcommand:_start,_startservice,_broadcast">subcommand: start, startservice, broadcast</h2><p>用法： <code>am [start|startservice|broadcast] [options] &lt;intent&gt;</code></p>
+<ul>
+<li>start: 启动一个activity，如<code>adb shell am start http://www.baidu.com</code></li>
+<li>startservice: 启动一个service</li>
+<li>broadcast: 发送一个broadcast</li>
+</ul>
+<p><code>&lt;intent&gt;</code>的形式如下：</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">&lt;INTENT&gt; specifications <span class="built_in">include</span> these flags <span class="operator">and</span> arguments:</span><br><span class="line">    [-<span class="operator">a</span> &lt;ACTION&gt;]       <span class="comment"># 定义action</span></span><br><span class="line">    [-d &lt;DATA_URI&gt;]     <span class="comment"># 定义data uri</span></span><br><span class="line">    [-t &lt;MIME_TYPE&gt;]    <span class="comment"># 定义多媒体类型</span></span><br><span class="line">    [-c &lt;CATEGORY&gt; [-c &lt;CATEGORY&gt;] ...]                 <span class="comment"># 定义category</span></span><br><span class="line">    [-e|<span class="comment">--es &lt;EXTRA_KEY&gt; &lt;EXTRA_STRING_VALUE&gt; ...]      # 增加String类型的extra信息</span></span><br><span class="line">    [<span class="comment">--esn &lt;EXTRA_KEY&gt; ...]                             # 增加extra key</span></span><br><span class="line">    [<span class="comment">--ez &lt;EXTRA_KEY&gt; &lt;EXTRA_BOOLEAN_VALUE&gt; ...]        # 增加boolean类型的extra信息</span></span><br><span class="line">    [<span class="comment">--ei &lt;EXTRA_KEY&gt; &lt;EXTRA_INT_VALUE&gt; ...]            # 增加int类型的extra信息</span></span><br><span class="line">    [<span class="comment">--el &lt;EXTRA_KEY&gt; &lt;EXTRA_LONG_VALUE&gt; ...]           # 增加long类型的extra信息</span></span><br><span class="line">    [<span class="comment">--ef &lt;EXTRA_KEY&gt; &lt;EXTRA_FLOAT_VALUE&gt; ...]          # 增加float类型的extra信息</span></span><br><span class="line">    [<span class="comment">--eu &lt;EXTRA_KEY&gt; &lt;EXTRA_URI_VALUE&gt; ...]            # 增加extra URI</span></span><br><span class="line">    [<span class="comment">--ecn &lt;EXTRA_KEY&gt; &lt;EXTRA_COMPONENT_NAME_VALUE&gt;]    # 增加extra comonent</span></span><br><span class="line">    [<span class="comment">--eia &lt;EXTRA_KEY&gt; &lt;EXTRA_INT_VALUE&gt;[,&lt;EXTRA_INT_VALUE...]]         # 批量增加int类型的extra信息</span></span><br><span class="line">    [<span class="comment">--ela &lt;EXTRA_KEY&gt; &lt;EXTRA_LONG_VALUE&gt;[,&lt;EXTRA_LONG_VALUE...]]       # 批量增加long类型的extra信息</span></span><br><span class="line">    [<span class="comment">--efa &lt;EXTRA_KEY&gt; &lt;EXTRA_FLOAT_VALUE&gt;[,&lt;EXTRA_FLOAT_VALUE...]]     # 批量增加float类型的extra信息</span></span><br><span class="line">    [<span class="comment">--esa &lt;EXTRA_KEY&gt; &lt;EXTRA_STRING_VALUE&gt;[,&lt;EXTRA_STRING_VALUE...]]   # 批量增加String类型的extra信息</span></span><br><span class="line">        (<span class="built_in">to</span> embed <span class="operator">a</span> <span class="constant">comma</span> <span class="keyword">into</span> <span class="operator">a</span> <span class="keyword">string</span> escape <span class="keyword">it</span> <span class="keyword">using</span> <span class="string">"\,"</span>)           <span class="comment"># 如果字符串中包含逗号，需要用"\,"进行转义</span></span><br><span class="line">    [-n &lt;COMPONENT&gt;]    <span class="comment"># 定义component信息</span></span><br><span class="line">    [-p &lt;PACKAGE&gt;]      <span class="comment"># 定义package信息</span></span><br><span class="line">    [-f &lt;FLAGS&gt;]        <span class="comment"># flags信息</span></span><br><span class="line">    [<span class="comment">--grant-read-uri-permission]           # 增加权限</span></span><br><span class="line">    [<span class="comment">--grant-write-uri-permission]          # 增加权限</span></span><br><span class="line">    [<span class="comment">--grant-persistable-uri-permission]    # 增加权限</span></span><br><span class="line">    [<span class="comment">--grant-prefix-uri-permission]         # 增加权限</span></span><br><span class="line">    [<span class="comment">--debug-log-resolution]</span></span><br><span class="line">    [<span class="comment">--exclude-stopped-packages]            # 排除stop状态的packages，系统默认</span></span><br><span class="line">    [<span class="comment">--include-stopped-packages]            # 包括stop状态的packages，默认intent不包括stop状态的packages</span></span><br><span class="line">    [<span class="comment">--activity-brought-to-front]</span></span><br><span class="line">    [<span class="comment">--activity-clear-top]</span></span><br><span class="line">    [<span class="comment">--activity-clear-when-task-reset]</span></span><br><span class="line">    [<span class="comment">--activity-exclude-from-recents]</span></span><br><span class="line">    [<span class="comment">--activity-launched-from-history]</span></span><br><span class="line">    [<span class="comment">--activity-multiple-task]</span></span><br><span class="line">    [<span class="comment">--activity-no-animation]</span></span><br><span class="line">    [<span class="comment">--activity-no-history]</span></span><br><span class="line">    [<span class="comment">--activity-no-user-action]</span></span><br><span class="line">    [<span class="comment">--activity-previous-is-top]</span></span><br><span class="line">    [<span class="comment">--activity-reorder-to-front]</span></span><br><span class="line">    [<span class="comment">--activity-reset-task-if-needed]</span></span><br><span class="line">    [<span class="comment">--activity-single-top]</span></span><br><span class="line">    [<span class="comment">--activity-clear-task]</span></span><br><span class="line">    [<span class="comment">--activity-task-on-home]</span></span><br><span class="line">    [<span class="comment">--receiver-registered-only]</span></span><br><span class="line">    [<span class="comment">--receiver-replace-pending]</span></span><br><span class="line">    [<span class="comment">--selector]</span></span><br><span class="line">    [&lt;URI&gt; | &lt;PACKAGE&gt; | &lt;COMPONENT&gt;]</span><br></pre></td></tr></table></figure>
+<p>(待续)</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/am/" rel="tag">#am</a>
+          
+            <a href="/tags/android/" rel="tag">#android</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/programming/javascript-inherits/" rel="next" title="一张图理解Javascript的继承原理">
+                <i class="fa fa-chevron-left"></i> 一张图理解Javascript的继承原理
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/programming/rxjava-in-56-lines/" rel="prev" title="56行代码理解RxJava">
+                56行代码理解RxJava <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+        
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/res/avatars/ducky.jpg" alt="iGNU" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">iGNU</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">53</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">75</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ybin" target="_blank">
+                  <i class="fa fa-github fa-fw"></i> github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/ybsolar" target="_blank">
+                  <i class="fa fa-twitter fa-fw"></i> twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/ignu" target="_blank">
+                  <i class="fa fa-weibo fa-fw"></i> weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Usage"><span class="nav-number">1.</span> <span class="nav-text">Usage</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#subcommand:_start,_startservice,_broadcast"><span class="nav-number">1.1.</span> <span class="nav-text">subcommand: start, startservice, broadcast</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+      
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">iGNU</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    motionMiddleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+
+      isMobile() && FastClick.attach(document.body);
+
+      // Define Motion Sequence.
+      motionIntegrator
+        .add(motionMiddleWares.logo)
+        .add(motionMiddleWares.menu)
+        .add(motionMiddleWares.backToTop)
+        .add(motionMiddleWares.postList)
+        .add(motionMiddleWares.sidebar);
+
+      // Bootstrap Motion.
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
