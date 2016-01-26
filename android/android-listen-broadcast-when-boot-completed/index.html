@@ -51,7 +51,7 @@
 <meta property="og:url" content="http://ybin.gitcafe.io/android/android-listen-broadcast-when-boot-completed/index.html">
 <meta property="og:site_name" content="iGNU's blog">
 <meta property="og:description" content="Android开机自启动应用需要注意的一些坑。">
-<meta property="og:updated_time" content="2016-01-25T11:12:16.390Z">
+<meta property="og:updated_time" content="2016-01-25T11:12:37.613Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android开机自启动应用">
 <meta name="twitter:description" content="Android开机自启动应用需要注意的一些坑。">
@@ -276,7 +276,7 @@
 <h1 id="权限">权限</h1><p>必须声明此权限<br><code>&lt;uses-permission android:name=&quot;android.permission.RECEIVE_BOOT_COMPLETED&quot; /&gt;</code></p>
 <h1 id="定义receiver">定义receiver</h1><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">receiver</span> <span class="attribute">android:name</span>=<span class="value">".BootReceiver"</span></span><br><span class="line">          <span class="attribute">android:enabled</span>=<span class="value">"true"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">action</span> <span class="attribute">android:name</span>=<span class="value">"android.intent.action.BOOT_COMPLETED"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">receiver</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <p>其中，<code>android:enable=&quot;true&quot;</code>这个属性必不可少。</p>
-<h1 id="必须手动启动">必须手动启动</h1><p>任何app安装之后都是处于”stopped”状态，此时，它是不会收到<code>BOOT_COMPLETED</code>消息的，<br>进入设置查看该app状态可以发现，<code>force stop</code>是不可用的，所以需要从Launcher启动该<br>app，之后它就不再是stopped状态，重启手机就可以收到<code>BOOT_COMPLETED</code>消息了。</p>
+<h1 id="必须手动启动一次">必须手动启动一次</h1><p>任何app安装之后都是处于”stopped”状态，此时，它是不会收到<code>BOOT_COMPLETED</code>消息的，<br>进入设置查看该app状态可以发现，<code>force stop</code>是不可用的，所以需要从Launcher启动该<br>app，之后它就不再是stopped状态，重启手机就可以收到<code>BOOT_COMPLETED</code>消息了。</p>
 <p>(over)</p>
 </span>
       
@@ -306,6 +306,10 @@
           </div>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/c/c-extern-enum-data/" rel="prev" title="在C语言中extern enum类型变量">
+                在C语言中extern enum类型变量 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -370,7 +374,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">53</span>
+              <span class="site-state-item-count">54</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -384,7 +388,7 @@
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">75</span>
+              <span class="site-state-item-count">78</span>
               <span class="site-state-item-name">标签</span>
               </a>
           </div>
@@ -439,7 +443,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#权限"><span class="nav-number">1.</span> <span class="nav-text">权限</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#定义receiver"><span class="nav-number">2.</span> <span class="nav-text">定义receiver</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#必须手动启动"><span class="nav-number">3.</span> <span class="nav-text">必须手动启动</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#权限"><span class="nav-number">1.</span> <span class="nav-text">权限</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#定义receiver"><span class="nav-number">2.</span> <span class="nav-text">定义receiver</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#必须手动启动一次"><span class="nav-number">3.</span> <span class="nav-text">必须手动启动一次</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

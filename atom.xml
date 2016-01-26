@@ -4,7 +4,7 @@
   
   <link href="/atom.xml" rel="self"/>
   <link href="http://ybin.gitcafe.io/"/>
-  <updated>2016-01-25T11:12:16.390Z</updated>
+  <updated>2016-01-26T11:42:46.582Z</updated>
   <id>http://ybin.gitcafe.io/</id>
   
   <author>
@@ -15,18 +15,51 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title><![CDATA[在C语言中extern enum类型变量]]></title>
+    <link href="http://ybin.gitcafe.io/c/c-extern-enum-data/"/>
+    <id>http://ybin.gitcafe.io/c/c-extern-enum-data/</id>
+    <published>2016-01-26T11:29:29.000Z</published>
+    <updated>2016-01-26T11:42:46.582Z</updated>
+    <content type="html"><![CDATA[<p>在C语言中，extern enum类型的用法。</p>
+<a id="more"></a>
+<p>问题： 在一个头文件中定义enum变量，然后其他C文件或者H文件中使用该变量，该如何做？</p>
+<p>仔细分析一下，其实道理很简单，直接上实例。</p>
+<h1 id="实例">实例</h1><p><code>def.h</code>中声明enum类型，<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">ifndef</span> DEF_H</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">define</span> DEF_H</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">enum</span> E &#123;</span><br><span class="line">    A, B, C</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="preprocessor">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure></p>
+<p><code>a.h</code>文件中定义enum类型变量<code>e</code>，<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">ifndef</span> A_H</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">define</span> A_H</span></span><br><span class="line"></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"def.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">enum</span> E e;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">a</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="preprocessor">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure></p>
+<p><code>b.h</code>、<code>c.h</code>里面使用<code>extern</code>声明enum变量<code>e</code>，<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* b.h */</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">ifndef</span> B_H</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">define</span> B_H</span></span><br><span class="line"></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"def.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">enum</span> E e;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">b</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="preprocessor">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* c.h */</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">ifndef</span> C_H</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">define</span> C_H</span></span><br><span class="line"></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"def.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">enum</span> E e;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">c</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="preprocessor">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure></p>
+<p><code>a.c</code>, <code>b.c</code>, <code>c.c</code>几乎一样，都是实现各自的函数而已，<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* a.c */</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"a.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">a</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"a: %d\n"</span>, A);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* b.c */</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"b.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">b</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"b: %d\n"</span>, B);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* c.c */</span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"c.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">c</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"c: %d\n"</span>, C);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后是测试代码<code>main.c</code>，<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"a.h"</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"b.h"</span></span></span><br><span class="line"><span class="preprocessor">#<span class="keyword">include</span> <span class="string">"c.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span><br><span class="line"></span>&#123;</span><br><span class="line">    a();</span><br><span class="line">    b();</span><br><span class="line">    c();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="说明">说明</h1><p><code>def.h</code>里面声明新的enum类型，<code>a.h</code>里面定义新的enum类型变量<code>e</code>，<br>然后在<code>b.h</code>, <code>c.h</code>中使用该enum类型变量<code>e</code>，它们两个只是在使用<code>e</code>，<br>并不重复定义，所以使用<code>extern</code>达到此目的。</p>
+<p>(over)</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>在C语言中，extern enum类型的用法。</p>]]>
+    
+    </summary>
+    
+      <category term="a" scheme="http://ybin.gitcafe.io/tags/a/"/>
+    
+      <category term="enum" scheme="http://ybin.gitcafe.io/tags/enum/"/>
+    
+      <category term="extern" scheme="http://ybin.gitcafe.io/tags/extern/"/>
+    
+      <category term="c/cpp" scheme="http://ybin.gitcafe.io/categories/c-cpp/"/>
+    
+  </entry>
+  
+  <entry>
     <title><![CDATA[Android开机自启动应用]]></title>
     <link href="http://ybin.gitcafe.io/android/android-listen-broadcast-when-boot-completed/"/>
     <id>http://ybin.gitcafe.io/android/android-listen-broadcast-when-boot-completed/</id>
     <published>2016-01-25T11:00:52.000Z</published>
-    <updated>2016-01-25T11:12:16.390Z</updated>
+    <updated>2016-01-25T11:12:37.613Z</updated>
     <content type="html"><![CDATA[<p>Android开机自启动应用需要注意的一些坑。</p>
 <a id="more"></a>
 <p>开机自启动应用有些需要注意的地方，如果不注意很容易掉到坑里去。</p>
 <h1 id="权限">权限</h1><p>必须声明此权限<br><code>&lt;uses-permission android:name=&quot;android.permission.RECEIVE_BOOT_COMPLETED&quot; /&gt;</code></p>
 <h1 id="定义receiver">定义receiver</h1><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">receiver</span> <span class="attribute">android:name</span>=<span class="value">".BootReceiver"</span></span><br><span class="line">          <span class="attribute">android:enabled</span>=<span class="value">"true"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">action</span> <span class="attribute">android:name</span>=<span class="value">"android.intent.action.BOOT_COMPLETED"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">receiver</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <p>其中，<code>android:enable=&quot;true&quot;</code>这个属性必不可少。</p>
-<h1 id="必须手动启动">必须手动启动</h1><p>任何app安装之后都是处于”stopped”状态，此时，它是不会收到<code>BOOT_COMPLETED</code>消息的，<br>进入设置查看该app状态可以发现，<code>force stop</code>是不可用的，所以需要从Launcher启动该<br>app，之后它就不再是stopped状态，重启手机就可以收到<code>BOOT_COMPLETED</code>消息了。</p>
+<h1 id="必须手动启动一次">必须手动启动一次</h1><p>任何app安装之后都是处于”stopped”状态，此时，它是不会收到<code>BOOT_COMPLETED</code>消息的，<br>进入设置查看该app状态可以发现，<code>force stop</code>是不可用的，所以需要从Launcher启动该<br>app，之后它就不再是stopped状态，重启手机就可以收到<code>BOOT_COMPLETED</code>消息了。</p>
 <p>(over)</p>
 ]]></content>
     <summary type="html">
@@ -779,48 +812,6 @@
       <category term="gradle" scheme="http://ybin.gitcafe.io/tags/gradle/"/>
     
       <category term="android" scheme="http://ybin.gitcafe.io/categories/android/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[Create standalone Gradle plugin by example]]></title>
-    <link href="http://ybin.gitcafe.io/gradle/create-standalone-gradle-plugin/"/>
-    <id>http://ybin.gitcafe.io/gradle/create-standalone-gradle-plugin/</id>
-    <published>2015-02-27T09:04:28.000Z</published>
-    <updated>2015-10-23T07:21:26.059Z</updated>
-    <content type="html"><![CDATA[<p>通过一个简单的实例，学习如何创建Gradle插件。</p>
-<a id="more"></a>
-<h3 id="Gradle_plugin">Gradle plugin</h3><p>一个插件就是一个实现了<code>Plugin</code>接口的Class而已。所以开发一个插件其实<br>就是创建一个实现了<code>Plugin</code>接口的Class。</p>
-<p>Gradle插件有三种实现方式：</p>
-<ol>
-<li>直接把Class放到<code>build.gradle</code>脚本中</li>
-<li>在project的根目录下创建一个名为<code>buildSrc</code>的工程作为插件的实现，<br>Gradle在build时会自动关注这个工程</li>
-<li>一个独立的project，它会将插件打包成一个.jar文件</li>
-</ol>
-<h3 id="创建一个独立的Gradle插件">创建一个独立的Gradle插件</h3><p>一个插件就是一个实现了<code>Plugin</code>接口的Class而已。</p>
-<p>一个独立的Gradle插件其实就是一个普通的<code>.jar</code>文件，而且Gradle并不关心<br>这个jar文件是通过什么语言实现的，可以用Java，也可以用Groovy，甚至可以用<br>Scala，都可以。所以说开发Gradle插件并没有语言限制。</p>
-<p>每个插件都有一个id，这才是Gradle关心的，Gradle会根据plugin id以及plugin version<br>在classpath中寻找<code>&lt;plugin id&gt;-&lt;plugin version&gt;.jar</code>这个文件，找到该文件之后，<br>Gradle怎么知道jar文件中哪个Class实现了<code>Plugin</code>接口呢？</p>
-<p>答案是：<code>META-INF</code>。Gradle会查找该jar文件的<code>META-INF/gradle-plugins/&lt;plugin id&gt;.properties</code><br>文件，该文件里面记录了实现<code>Plugin</code>接口的Class，</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">implementation-class=com.example.greetings.GreetingPlugin</span><br></pre></td></tr></table></figure>
-<p>注意，plugin id一般是<code>group.name</code>这种格式，如<code>com.google.android</code>，但是这并不是<br>强制的，完全可以用<code>abc</code>来作为plugin id，由此观之，plugin id里面的group，name<br>与代码里的package是没啥关系的。</p>
-<p>既然如此，我们在一个jar里面放置多个<code>&lt;plugin id&gt;.properties</code>文件，让它们的内容完全<br>一样，这样我们的插件就可以拥有多个plugin id了，是否可行呢？当然可以！</p>
-<p>一般，我们用Groovy来开发插件，所以可以把<code>META-INF/gradle-plugins/&lt;plugin id&gt;.properties</code><br>放到<code>src/main/resources/</code>目录下，这样生成jar文件时它就会被打包进去了。</p>
-<p>剩下的就是正常开发Groovy项目的步骤，不必多说。</p>
-<figure class="highlight groovy"><figcaption><span>build.gradle</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">apply <span class="string">plugin:</span> <span class="string">'groovy'</span></span><br><span class="line"></span><br><span class="line">version = <span class="string">'1.0'</span></span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile gradleApi()</span><br><span class="line">    compile localGroovy()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight groovy"><figcaption><span>GreetingPlugin.groovy</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.greetings</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.gradle.api.Plugin;</span><br><span class="line"><span class="keyword">import</span> org.gradle.api.Project;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GreetingPlugin</span> <span class="keyword">implements</span> <span class="title">Plugin</span>&lt;<span class="title">Project</span>&gt; &#123;</span></span><br><span class="line">    <span class="typename">void</span> apply(Project project) &#123;</span><br><span class="line">        project.extensions.create(<span class="string">"greeting"</span>, GreetingPluginExtension)</span><br><span class="line">        project.task(<span class="string">'hello'</span>) &lt;&lt; &#123;</span><br><span class="line">            println <span class="string">"$&#123;project.greeting.message&#125; from $&#123;project.greeting.greeter&#125;"</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GreetingPluginExtension</span> &#123;</span></span><br><span class="line">    String message</span><br><span class="line">    String greeter</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>最后，<code>gradle jar</code>生成jar文件即可。</p>
-<h3 id="应用插件">应用插件</h3><figure class="highlight groovy"><figcaption><span>build.gradle of another project</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">buildscript &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        maven &#123;</span><br><span class="line">            url uri(<span class="string">'path/to/your/jar/related/to/project/dir'</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    dependencies &#123;</span><br><span class="line">        <span class="comment">// 用于查找.jar文件</span></span><br><span class="line">        classpath <span class="string">'com.ybin:greetings:1.0'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// .jar文件中包含多个&lt;plugin id&gt;.properties文件，</span></span><br><span class="line"><span class="comment">// 则该插件就有多个id</span></span><br><span class="line"><span class="comment">//apply plugin: 'greetings'</span></span><br><span class="line">apply <span class="string">plugin:</span> <span class="string">'com.ybin.greetings'</span></span><br><span class="line"></span><br><span class="line">greeting &#123;</span><br><span class="line">    message = <span class="string">'Hi'</span></span><br><span class="line">    greeter = <span class="string">'Gradle'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-]]></content>
-    <summary type="html">
-    <![CDATA[<p>通过一个简单的实例，学习如何创建Gradle插件。</p>]]>
-    
-    </summary>
-    
-      <category term="gradle" scheme="http://ybin.gitcafe.io/tags/gradle/"/>
-    
-      <category term="plugin" scheme="http://ybin.gitcafe.io/tags/plugin/"/>
-    
-      <category term="gradle" scheme="http://ybin.gitcafe.io/categories/gradle/"/>
     
   </entry>
   
