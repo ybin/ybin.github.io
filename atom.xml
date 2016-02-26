@@ -4,7 +4,7 @@
   
   <link href="/atom.xml" rel="self"/>
   <link href="http://ybin.gitcafe.io/"/>
-  <updated>2016-02-14T09:12:28.543Z</updated>
+  <updated>2016-02-26T00:41:42.030Z</updated>
   <id>http://ybin.gitcafe.io/</id>
   
   <author>
@@ -13,6 +13,78 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[Java泛型里的协变和逆变]]></title>
+    <link href="http://ybin.gitcafe.io/programming/java-variance-in-generics/"/>
+    <id>http://ybin.gitcafe.io/programming/java-variance-in-generics/</id>
+    <published>2016-02-25T02:28:04.000Z</published>
+    <updated>2016-02-26T00:41:42.030Z</updated>
+    <content type="html"><![CDATA[<p>实例讲解Java泛型里的协变和逆变。</p>
+<a id="more"></a>
+<h1 id="Java泛型里的协变和逆变">Java泛型里的协变和逆变</h1><p>通过实例来看问题，</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义三个类: Benz -&gt; Car -&gt; Vehicle，它们之间是顺次继承关系</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Vehicle</span> </span>&#123;&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Car</span> <span class="keyword">extends</span> <span class="title">Vehicle</span> </span>&#123;&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Benz</span> <span class="keyword">extends</span> <span class="title">Car</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义一个util类，其中用到泛型里的协变和逆变</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Utils</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function">T <span class="title">get</span><span class="params">(List&lt;? extends T&gt; list, <span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> list.get(i);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">put</span><span class="params">(List&lt;? <span class="keyword">super</span> T&gt; list, T item)</span> </span>&#123;</span><br><span class="line">        list.add(item);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">copy</span><span class="params">(List&lt;? <span class="keyword">super</span> T&gt; to, List&lt;? extends T&gt; from)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(T item : from) &#123;</span><br><span class="line">            to.add(item);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试函数</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    List&lt;Vehicle&gt; vehicles = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    List&lt;Benz&gt; benzs = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    Utils&lt;Car&gt; carUtils = <span class="keyword">new</span> Utils&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    carUtils.put(vehicles, <span class="keyword">new</span> Car());</span><br><span class="line">    Car car = carUtils.get(benzs, <span class="number">0</span>);</span><br><span class="line">    carUtils.copy(vehicles, benzs);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们只需关注<code>Utils&lt;Car&gt;.copy()</code>函数即可，两个参数<code>from</code>, <code>to</code>均为list，</p>
+<ul>
+<li>对<code>from</code>的要求：其中的对象必须是<code>Car</code>或者<code>Car</code>的子类，即可以用<code>Car</code>来引用这些对象</li>
+<li>对<code>to</code>的要求：它必须可以保存<code>Car</code>类型的对象，即其元素的类型必须是<code>Car</code>或者<code>Car</code>的父类</li>
+</ul>
+<p>接下来看看该函数的使用情况，<code>carUtils.copy(vehicles, benzs);</code>，参数的含义是：</p>
+<ul>
+<li><code>List&lt;? extents Car&gt;</code>：这个类型集合(<code>List&lt;Car&gt;</code>, <code>List&lt;Benz&gt;</code>)里的元素可以使用替换原则</li>
+<li><code>List&lt;? super Car&gt;</code>：这个类型集合(<code>List&lt;Car&gt;</code>,<code>List&lt;Vehicle&gt;</code>)里的元素也可以使用替换原则</li>
+</ul>
+<p>都可以使用替换原则了，但是他们有何区别呢？</p>
+<ul>
+<li><code>List&lt;? extents Car&gt;</code>：<code>List&lt;? extents Car&gt;</code>与<code>? extends Car</code>的序关系是<strong>一致</strong>的</li>
+<li><code>List&lt;? super Car&gt;</code>：<code>List&lt;? super Car&gt;</code>与<code>? super Car</code>的序关系是<strong>相反</strong>的</li>
+</ul>
+<p>其中，<code>? extends Car</code>, <code>? super Car</code>, <code>List&lt;? extents Car&gt;</code>, <code>List&lt;? super Car&gt;</code><br>均为<strong>类型集合</strong>，序关系小的可以替换序关系大的。其实在类型系统里面，Liskov替换原则可以<br>进一步推广为： <strong>任何序关系大的类型可以出现的地方，序关系小的类型一定可以出现。</strong><br>而继承关系是一种特殊的<strong>序关系</strong>，当然这需要语言的类型系统支持才可以。</p>
+<h1 id="协变和逆变">协变和逆变</h1><h2 id="定义(wikipedia)">定义(wikipedia)</h2><ul>
+<li><code>covariant</code> if it preserves <strong>the ordering of types</strong> (≤), which orders types from more specific to more generic;</li>
+<li><code>contravariant</code> if it reverses this ordering;</li>
+<li><code>bivariant</code> if both of these apply (i.e., both <code>I&lt;A&gt;</code> ≤ <code>I&lt;B&gt;</code> and <code>I&lt;B&gt;</code> ≤ <code>I&lt;A&gt;</code> at the same time);</li>
+<li><code>invariant</code> or <code>nonvariant</code> if neither of these applies.</li>
+</ul>
+<h2 id="理解">理解</h2><p>设<code>T</code>是一个类型集合(type set)，其中的元素是一个个类型，如<code>Vehicle</code>, <code>Car</code>, <code>Benz</code>，<br><code>S&lt;T&gt;</code>是一个根据<code>T</code>生成的类型集合(如<code>List&lt;T&gt;</code>)，其中的元素也是一个个类型，如<code>S&lt;Vehicle&gt;</code>,<br><code>S&lt;Car&gt;</code>, <code>S&lt;Benz&gt;</code>，那么我们有如下定义，</p>
+<ul>
+<li>如果集合<code>S&lt;T&gt;</code>里的序关系跟集合<code>T</code>里的序关系<strong>一致</strong>，那么就说<code>S&lt;T&gt;</code>跟<code>T</code>是<strong>协变关系</strong></li>
+<li>如果集合<code>S&lt;T&gt;</code>里的序关系跟集合<code>T</code>里的序关系<strong>相反</strong>，那么就说<code>S&lt;T&gt;</code>跟<code>T</code>是<strong>逆变关系</strong></li>
+</ul>
+<p>然后，根据序关系的<strong>大小</strong>就可以使用<strong>替换原则</strong>了。那函数<code>Utils&lt;Car&gt;.copy()</code>的参数<br>为啥要用<code>? extends T</code>，<code>? super T</code>而不直接使用<code>T</code>呢，<code>void copy(List&lt;T&gt; to, List&lt;T&gt; from)</code>，<br>把<code>T</code>替换成<code>Car</code>之后，要使用这个函数就只能使用<code>List&lt;Car&gt;</code>了，但是很明显，我们完全可以<br>将一个<code>List&lt;Benz&gt;</code> copy 到一个<code>List&lt;Car&gt;</code>或者<code>List&lt;Vehicle&gt;</code>里面，要怎么解决呢？<br>当然是使用协变和逆变：</p>
+<ul>
+<li>对于<code>from</code>参数，<code>? extends T</code>表示跟<code>T</code>满足协变关系的<code>List&lt;T&gt;</code>就可以使用替换原则</li>
+<li>对于<code>to</code>参数，<code>? super T</code>表示跟<code>T</code>满足逆变关系的<code>List&lt;T&gt;</code>就可以使用替换原则</li>
+</ul>
+<p>这样就不用仅仅局限到<code>List&lt;Car&gt;</code>了。</p>
+<h2 id="协变、逆变使用的时机">协变、逆变使用的时机</h2><p>然后问题又来了，什么时候使用协变，什么时候使用逆变呢？<br>仔细观察（<code>C#</code>里面已经观察好久了）就会发现，</p>
+<ul>
+<li>如果只是<strong>读取</strong>的话，那么满足<strong>协变</strong>关系的类型可以使用替换原则</li>
+<li>如果只是<strong>写入</strong>的话，那么满足<strong>逆变</strong>关系的类型可以使用替换原则</li>
+</ul>
+<p>比如上面的函数，<code>void copy(List&lt;? super Car&gt; to, List&lt;? extends Car&gt; from);</code>，<br>从<code>from</code>里面读取数据，则完全可以从<code>List&lt;Car&gt;</code>，<code>List&lt;Benz&gt;</code>里面读取，<br>而往<code>to</code>里面写入数据，则完全可以往<code>List&lt;Car&gt;</code>，<code>List&lt;Vehicle&gt;</code>里面写入，<br>所以<code>from</code>使用满足协变关系的类型而<code>to</code>使用满足逆变关系的类型。事实上，在<code>C#</code>，<code>Kotlin</code>里，<br>直接使用<code>out</code>, <code>in</code>来表示协变关系和逆变关系，比如Kotlin里面这样定义copy函数，<br><code>fun copy(to: List&lt;in Car&gt;, from: List&lt;out Car&gt;)</code>，然后就可以这样使用了，</p>
+<ul>
+<li><code>copy(cars, benzs)</code></li>
+<li><code>copy(cars, cars)</code></li>
+<li><code>copy(vehicles, benzs)</code></li>
+<li><code>copy(vehicles, cars)</code></li>
+</ul>
+<p>(over)</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>实例讲解Java泛型里的协变和逆变。</p>]]>
+    
+    </summary>
+    
+      <category term="contravariance" scheme="http://ybin.gitcafe.io/tags/contravariance/"/>
+    
+      <category term="covariance" scheme="http://ybin.gitcafe.io/tags/covariance/"/>
+    
+      <category term="generics" scheme="http://ybin.gitcafe.io/tags/generics/"/>
+    
+      <category term="java" scheme="http://ybin.gitcafe.io/tags/java/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[Java nested classes]]></title>
@@ -775,51 +847,6 @@
       <category term="binder" scheme="http://ybin.gitcafe.io/tags/binder/"/>
     
       <category term="java" scheme="http://ybin.gitcafe.io/tags/java/"/>
-    
-      <category term="android" scheme="http://ybin.gitcafe.io/categories/android/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[Android View变换]]></title>
-    <link href="http://ybin.gitcafe.io/android/android-view-transform/"/>
-    <id>http://ybin.gitcafe.io/android/android-view-transform/</id>
-    <published>2015-03-27T07:43:37.000Z</published>
-    <updated>2015-10-23T07:21:49.185Z</updated>
-    <content type="html"><![CDATA[<p>View的平移、缩放、旋转等变换。</p>
-<a id="more"></a>
-<p>我想通过一个实例来掩饰view的旋转、缩放等变换。<br>需求是这样的：</p>
-<p>用TextureView实现一个简单的视频播放器，要求播放时最大程度的利用屏幕，如竖屏时<br>播放一个宽屏的视频时，比如一个1080x1920的屏幕(竖屏)播放一个1920x1080的视频，<br>此时要将视频旋转90度，这样就可以实现全屏播放，从而最大程度的利用屏幕。</p>
-<p>我的做法就是对TextureView先旋转再缩放，</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">changeLayoutParams</span><span class="params">(TextureView view, <span class="keyword">int</span> videoWidth, <span class="keyword">int</span> videoHeight)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (videoWidth == <span class="number">0</span> || videoHeight == <span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> targetWidth = mScreenWidth;</span><br><span class="line">    <span class="keyword">int</span> targetHeight = mScreenHeight;</span><br><span class="line">    Log.d(TAG, <span class="string">"target width &amp; height: "</span> + targetWidth + <span class="string">", "</span> + targetHeight);</span><br><span class="line">    Log.d(TAG, <span class="string">"video width &amp; height: "</span> + videoWidth + <span class="string">", "</span> + videoHeight);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">boolean</span> needRotate = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">float</span> ratio;</span><br><span class="line">    <span class="keyword">float</span> scaleX;</span><br><span class="line">    <span class="keyword">float</span> scaleY;</span><br><span class="line">    <span class="keyword">float</span> rotation = <span class="number">0.0f</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> newVideoWidth = videoWidth;</span><br><span class="line">    <span class="keyword">int</span> newVideoHeight = videoHeight;</span><br><span class="line">    <span class="keyword">if</span> ((targetWidth - targetHeight) * (videoWidth - videoHeight) &lt; <span class="number">0</span> &amp;&amp; needRotate) &#123;</span><br><span class="line">        newVideoWidth = videoHeight;</span><br><span class="line">        newVideoHeight = videoWidth;</span><br><span class="line">        rotation = <span class="number">90.0f</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// rotate</span></span><br><span class="line">    view.setRotation(rotation);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// scale</span></span><br><span class="line">    <span class="comment">// 1. scale to video size</span></span><br><span class="line">    scaleX = (<span class="keyword">float</span>)videoWidth/targetWidth;</span><br><span class="line">    scaleY = (<span class="keyword">float</span>)videoHeight/targetHeight;</span><br><span class="line">    <span class="comment">// 2. scale to fix target size</span></span><br><span class="line">    ratio = Math.min((<span class="keyword">float</span>)targetWidth/newVideoWidth, (<span class="keyword">float</span>)targetHeight/newVideoHeight);</span><br><span class="line">    Log.d(TAG, <span class="string">"ratio: "</span> + ratio + <span class="string">" ,scale x: "</span> + scaleX</span><br><span class="line">            + <span class="string">" ,scale y: "</span> + scaleY + <span class="string">", rotation: "</span> + rotation);</span><br><span class="line">    view.setScaleX(scaleX * ratio);</span><br><span class="line">    view.setScaleY(scaleY * ratio);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>变换的过程就是：</p>
-<ol>
-<li>旋转view，使view和视频的长边对长边、短边对短边</li>
-<li>缩放view，使view的长边等于视频的长边、短边等于视频的短边</li>
-<li>缩放view，使view保持画面比例的情况下，最大程度的适配屏幕尺寸</li>
-</ol>
-<p>这里需要注意的是：view的旋转、缩放、平移都是在draw阶段发生的，因而这些操作不会影响view的<br>width, height，和位置等信息，事实上这些操作跟onDraw()时对Canvas的操作是一样的。</p>
-<p>无论怎么操作，view的Surface(盛放view内容的内存区域)都是不变的，它在measure, layout之后就固定了，<br>draw的任何操作只是去使用这块内存区域，至于怎么往上画东西这是view定义者的自由，不过超出该区域的<br>内容将被无情的忽略掉！</p>
-<p>我们这里的情况就是这样的，TextureView是match parent的，即尺寸等于屏幕尺寸(1080x1920)，所以为其<br>分配的内存区域就是1080x1920，但是视频确实1920x1080的，默认情况下media player只是简单的将视频内容<br>填充到这块内存中，从而使得画面显示不全或者拉伸等情况。</p>
-<h3 id="代码讲解">代码讲解</h3><p>首先，选择90度，</p>
-<figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">        origin</span><br><span class="line">          +----+  --&gt; X(width)</span><br><span class="line">          |<span class="string">    </span>|<span class="string">          </span><br><span class="line">          </span>|<span class="string">    </span>|<span class="string">          </span><br><span class="line">          </span>|<span class="string">    </span>|<span class="string">  Y(height) &lt;--    </span><br><span class="line">+---------+----+---------+ new origin</span><br><span class="line"></span>|<span class="string">         </span>|<span class="string">    </span>|<span class="string">         </span>|</span><br><span class="line">+---------+----+---------+</span><br><span class="line">          |<span class="string">    </span>|<span class="string">         v </span><br><span class="line">          </span>|<span class="string">    </span>|<span class="string">         X(width) </span><br><span class="line">          </span>|<span class="string">    </span>|<span class="string">          </span><br><span class="line">          </span>|<span class="string">    </span>|<span class="string">          </span><br><span class="line">          +----+          </span><br><span class="line">          v</span><br><span class="line">          Y(height)</span></span><br></pre></td></tr></table></figure>
-<p>开始时，Canvas坐标原点跟Surface左上角重合，旋转90度后原点变为new origin，但是Surface仍然是竖直的<br>那个区域，此时视频画面从new origin开始画，结果就是面目全非，所以还需要缩放操作。</p>
-<p>其次，缩放view适配视频大小。view的X轴原本是屏幕宽度，现在要scale到视频的宽度，Y轴原本是屏幕高度，现在<br>要scale到视频的高度，所以缩放因子是</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scaleX = (<span class="keyword">float</span>)videoWidth/targetWidth;</span><br><span class="line">scaleY = (<span class="keyword">float</span>)videoHeight/targetHeight;</span><br></pre></td></tr></table></figure>
-<p>然后还要考虑屏幕比例跟视频比例不一致的情况，此时要将view等比例缩放，是按照X轴缩放还是按照Y轴缩放？<br>答案是哪个缩放比例小就按照那个来，</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ratio = Math.min((<span class="keyword">float</span>)targetWidth/newVideoWidth, (<span class="keyword">float</span>)targetHeight/newVideoHeight);</span><br></pre></td></tr></table></figure>
-<p>自始至终，Surface都是不变的，切记！！！</p>
-<h3 id="另一种解法？！">另一种解法？！</h3><p>还有一种想法，就是先旋转，然后通过LayoutParams将view的宽高互换，这样就不用中间的那步缩放了，<br>但是这样是不行的，为啥？因为view的parent就是1080x1920，view怎么能申请到1920x1080的尺寸呢？<br>measure过程就被改为1080x1080了！</p>
-<p>(over)</p>
-]]></content>
-    <summary type="html">
-    <![CDATA[<p>View的平移、缩放、旋转等变换。</p>]]>
-    
-    </summary>
-    
-      <category term="android" scheme="http://ybin.gitcafe.io/tags/android/"/>
-    
-      <category term="view" scheme="http://ybin.gitcafe.io/tags/view/"/>
     
       <category term="android" scheme="http://ybin.gitcafe.io/categories/android/"/>
     

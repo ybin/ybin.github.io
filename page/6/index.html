@@ -223,6 +223,99 @@
             
             
               
+                <a class="post-title-link" href="/compiler/gcc-inline-assembly/" itemprop="url">
+                  GCC内联汇编
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2014-11-21T16:23:17+08:00" content="2014-11-21">
+              2014-11-21
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/编译器/" itemprop="url" rel="index">
+                    <span itemprop="name">编译器</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <p>GCC内联汇编(inline assembly)的基本语法如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">__asm__ __volatile___ (</span><br><span class="line">    <span class="string">"assembly statements"</span></span><br><span class="line">    : <span class="string">"output statements"</span></span><br><span class="line">    : <span class="string">"input statements"</span></span><br><span class="line">    : <span class="string">"modified descriptions"</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p><code>__asm__</code>表示内联汇编，<code>__volatile__</code>表示不要优化代码。<br>三个冒号后面每一个都可以有多个部分，每个部分用逗号隔开。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/compiler/gcc-inline-assembly/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
                 <a class="post-title-link" href="/jvm/install-jamvm/" itemprop="url">
                   安装JamVM
                 </a>
@@ -990,7 +1083,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-count">59</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -1004,7 +1097,7 @@
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">83</span>
+              <span class="site-state-item-count">86</span>
               <span class="site-state-item-name">标签</span>
               </a>
           </div>
