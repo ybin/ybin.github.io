@@ -1,0 +1,745 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='//fonts.useso.com/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+
+
+  <meta name="keywords" content="sgid,sticky bit,suid," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iGNU's blog" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="Linux系统文件权限标志位。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux文件权限标志位">
+<meta property="og:url" content="http://ybin.gitcafe.io/linux/linux-file-permission-and-uid-euid/index.html">
+<meta property="og:site_name" content="iGNU's blog">
+<meta property="og:description" content="Linux系统文件权限标志位。">
+<meta property="og:updated_time" content="2016-03-01T07:52:16.540Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux文件权限标志位">
+<meta name="twitter:description" content="Linux系统文件权限标志位。">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+  <title> Linux文件权限标志位 | iGNU's blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">iGNU's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu menu-left">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <form class="site-search-form">
+    <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+  </form>
+
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'd-CBG2sZDFQ4dxyLmzSk','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux文件权限标志位
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            发表于
+            <time itemprop="dateCreated" datetime="2016-03-01T14:05:50+08:00" content="2016-03-01">
+              2016-03-01
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/linux-unix/" itemprop="url" rel="index">
+                    <span itemprop="name">linux/unix</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>Linux系统文件权限标志位。<br><a id="more"></a></p>
+<h1 id="文件权限格式">文件权限格式</h1><p>Linux系统文件权限用下图所示的格式来表示，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span><br><span class="line">9 876 543 210</span><br><span class="line">- rwx rwx rwx</span><br><span class="line">- --- --- ---</span><br><span class="line">|  |   |   |</span><br><span class="line">|  |   |   +-&gt; permission bits for others</span><br><span class="line">|  |   +-----&gt; permission bits for group</span><br><span class="line">|  +---------&gt; permission bits for owner</span><br><span class="line">+------------&gt; file type bit</span><br><span class="line">*/</span></span><br></pre></td></tr></table></figure>
+<p><code>876</code>, <code>543</code>, <code>210</code>分别表示<strong>others</strong>, <strong>group</strong>, <strong>owner</strong><br>所具有的权限(read, write, execute)，如果没有对应的权限，则用<code>-</code>表示，<br>如<code>- rw- r-- ---</code>表示<code>owner</code>具有读写权限，跟<code>owner</code>同组的用户具有读权限，<br>其他用户则没有任何操作该文件的权限。</p>
+<p>另外还有另一种表示方法。<code>read</code>, <code>write</code>, <code>execute</code>权限分别用数字4，2，1来表示，<br>没有权限则用数字0表示，然后相加就得到一个数字，每一组权限都有一个数字对应，<br>如刚才的权限<code>- rw- r-- ---</code>用数字格式表示为<code>- 6 4 0</code>。</p>
+<h1 id="文件类型">文件类型</h1><p>最左边的位置(即9那个位置)用来表示文件类型，可能的值为：</p>
+<ul>
+<li><code>-</code>：普通文件</li>
+<li><code>b</code>：块设备文件(block)</li>
+<li><code>c</code>：字符设备文件(char)</li>
+<li><code>d</code>：目录文件(directory)</li>
+<li><code>l</code>：符号链接文件(link)</li>
+<li><code>p</code>：命名管道文件(pipe)</li>
+<li><code>s</code>：socket文件</li>
+</ul>
+<h1 id="suid,_sgid,_sticky_bit">suid, sgid, sticky bit</h1><p>对于每组的<code>execute</code>权限位又有特殊的规定，这就是suid(set uid), sgid(set gid)和<br>sticky bit。</p>
+<h2 id="suid">suid</h2><p>对于<strong>owner</strong>的<code>execute</code>权限位，还可以设置<code>suid</code>标志，用<code>s</code>来表示，如果该位置本来<br>就有可执行权限位，即<code>x</code>，则<code>s</code>和<code>x</code>叠加后用大写的<code>S</code>来表示。</p>
+<h2 id="sgid">sgid</h2><p>类似与suid，对于<strong>group</strong>的<code>execute</code>权限位，还可以设置<code>guid</code>标志，也用<code>s</code>来表示，<br>同样的，如果该位置本来就有可执行权限位，即<code>x</code>，则<code>s</code>和<code>x</code>叠加后用大写的<code>S</code>来表示。</p>
+<h2 id="sticky_bit">sticky bit</h2><p>不同于suid, guid，对于<strong>others</strong>的<code>execute</code>权限位，则可以设置<code>sticky bit</code>标志，<br>用<code>t</code>来表示，如果该位置本来就有可执行权限位，即<code>x</code>，则<code>t</code>和<code>x</code>叠加后用大写的<code>T</code>来表示。</p>
+<p>sticky bit只对目录起作用，如果一个目录设置了sticky bit，则该目录下的文件只能被<br>该文件的owner或者root删除，其他用户即使有删除权限也无法删除该文件。</p>
+<p>例如，<code>/tmp</code>目录，它的权限为<code>d rwx rwx rwt</code>，该目录中的文件(或目录)只能被owner<br>或root删除，这样大家都可以把自己的临时文件往该目录里面放，但是你的文件别人是无法<br>删除的。</p>
+<p>注意：<code>suid</code>, <code>sgid</code>只对<strong>文件</strong>起作用，而sticky bit只对<strong>目录</strong>起作用。</p>
+<h1 id="suid,_sgid标志位的作用">suid, sgid标志位的作用</h1><p>要想说明白suid, guid的作用，首先要弄明白uid, gid以及euid, guid的作用。</p>
+<p>uid, gid在用户登陆的时候就确定了，uid用来唯一标识一个用户，guid也是固定好了的。<br>但是euid, egid又是什么呢？</p>
+<p>考虑<code>/etc/passwd</code>文件以及<code>passwd</code>命令的使用场景，它们的文件权限如下，</p>
+<ul>
+<li><code>/etc/passwd</code>: <code>- rw- r-- r--</code></li>
+<li><code>/usr/bin/passwd</code>: <code>- rws r-x r-x</code></li>
+</ul>
+<p>passwd文件是如此重要，以至于该文件<br>除了owner(即root)，其他人都是只能读，不能写，但是任何用户都允许修改自己的信息，即<br>修改这个文件，那怎么办呢，linux系统为大家提供了一个passwd命令来修改这个文件，而且<br>任何人都可以执行passwd命令，但是执行这个命令的时候，passwd文件仍然无法修改，因为<br>此时的用户仍然不是passwd文件的owner，怎么办呢？解决办法就是在执行passwd命令的时候，<br>把用户临时改成passwd文件的owner，这样就相当于其他用户以owner的身份来修改/etc/passwd，<br>命令执行完之后再恢复为原来的用户id。</p>
+<p>此时就要用到一个临时的用户id，用它来记录passwd命令运行时的<strong>有效用户id</strong>，也就是<br>euid(effective uid，相当于运行时uid)，linux文件权限系统核对用户身份时使用euid而<br>不是uid(也叫做real uid, ruid)。</p>
+<p>哪些命令执行的时候可以临时修改用户id呢？那就是设置了<code>suid</code>标志位的那些可执行文件，<br>可见，<code>suid</code>只对文件有效，而且是可执行文件，所以该标志位放在<code>execute</code>权限位的位置上。<br><code>sgid</code>的原理是类似的。</p>
+<p>总结一下，</p>
+<ul>
+<li><code>suid</code>: set uid，具有该标志位的可执行文件在运行时，会将用户的<code>euid</code>设置为该文件的<code>uid</code></li>
+<li><code>sgid</code>: set gid，具有该标志位的可执行文件在运行时，会将用户的<code>egid</code>设置为该文件的<code>gid</code></li>
+</ul>
+<p>需要注意的是，<code>uid</code>, <code>euid</code>是实实在在的数字，而<code>suid</code>只是文件的一个标志位，<code>gid</code>也是类似的。</p>
+<p>(over)</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/sgid/" rel="tag">#sgid</a>
+          
+            <a href="/tags/sticky-bit/" rel="tag">#sticky bit</a>
+          
+            <a href="/tags/suid/" rel="tag">#suid</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/programming/java-variance-in-generics/" rel="next" title="Java泛型里的协变和逆变">
+                <i class="fa fa-chevron-left"></i> Java泛型里的协变和逆变
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+        
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/res/avatars/ducky.jpg" alt="iGNU" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">iGNU</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">60</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">13</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">89</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/ybin" target="_blank">
+                  <i class="fa fa-github fa-fw"></i> github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/ybsolar" target="_blank">
+                  <i class="fa fa-twitter fa-fw"></i> twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/ignu" target="_blank">
+                  <i class="fa fa-weibo fa-fw"></i> weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#文件权限格式"><span class="nav-number">1.</span> <span class="nav-text">文件权限格式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#文件类型"><span class="nav-number">2.</span> <span class="nav-text">文件类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#suid,_sgid,_sticky_bit"><span class="nav-number">3.</span> <span class="nav-text">suid, sgid, sticky bit</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#suid"><span class="nav-number">3.1.</span> <span class="nav-text">suid</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sgid"><span class="nav-number">3.2.</span> <span class="nav-text">sgid</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sticky_bit"><span class="nav-number">3.3.</span> <span class="nav-text">sticky bit</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#suid,_sgid标志位的作用"><span class="nav-number">4.</span> <span class="nav-text">suid, sgid标志位的作用</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+      
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">iGNU</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    motionMiddleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+
+      isMobile() && FastClick.attach(document.body);
+
+      // Define Motion Sequence.
+      motionIntegrator
+        .add(motionMiddleWares.logo)
+        .add(motionMiddleWares.menu)
+        .add(motionMiddleWares.backToTop)
+        .add(motionMiddleWares.postList)
+        .add(motionMiddleWares.sidebar);
+
+      // Bootstrap Motion.
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
